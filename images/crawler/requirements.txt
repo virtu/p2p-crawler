@@ -1,0 +1,5 @@
+google-cloud-storage
+i2plib
+pytest
+python-socks[asyncio]
+pandas

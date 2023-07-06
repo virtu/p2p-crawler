@@ -1,0 +1,56 @@
+name: bitcoin-node-crawler
+services:
+  crawler:
+    build:
+      context: images/crawler
+    image: bitcoin-node-crawler/crawler
+    volumes:
+      - ./results:/usr/app/results
+    environment:
+      - LOG_LEVEL=INFO
+      - NUM_WORKERS=20
+      - NODE_SHARE=${NODE_SHARE:-1.0}
+      - RESULT_PATH=results
+      - STORE_DEBUG_LOG=True
+      - DELAY_START=${DELAY_START:-30}
+      - P2P_IP_CONNECT_TIMEOUT=${P2P_IP_CONNECT_TIMEOUT:-2}
+      - P2P_IP_MESSAGE_TIMEOUT=${P2P_IP_MESSAGE_TIMEOUT:-5}
+      - P2P_IP_MAX_GETPEER_TIME=${P2P_IP_MAX_GETPEER_TIME:-30}
+      - P2P_TOR_CONNECT_TIMEOUT=${P2P_TOR_CONNECT_TIMEOUT:-120}
+      - P2P_TOR_MESSAGE_TIMEOUT=${P2P_TOR_MESSAGE_TIMEOUT:-10}
+      - P2P_TOR_MAX_GETPEER_TIME=${P2P_TOR_MAX_GETPEER_TIME:-20}
+      - P2P_I2P_CONNECT_TIMEOUT=${P2P_I2P_CONNECT_TIMEOUT:-60}
+      - P2P_I2P_MESSAGE_TIMEOUT=${P2P_I2P_MESSAGE_TIMEOUT:-10}
+      - P2P_I2P_MAX_GETPEER_TIME=${P2P_I2P_MAX_GETPEER_TIME:-20}
+      - STORE_TO_GCS=${STORE_TO_GCS:-False}
+      - GCS_BUCKET=${GCS_BUCKET:-default}
+      - GCS_LOCATION=${GCS_LOCATION:-default}
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcs_cred
+    networks:
+      - custom-ipv6
+    # secrets:
+    #   - gcs_cred
+
+  tor:
+    build:
+      context: images/tor
+    image: bitcoin-node-crawler/tor
+    networks:
+      - custom-ipv6
+
+  i2pd:
+    image: purplei2p/i2pd
+    networks:
+      - custom-ipv6
+
+networks:
+  custom-ipv6:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 2001:db8:a::/64
+          gateway: 2001:db8:a::1
+
+# secrets:
+#   gcs_cred:
+#     file: secrets/credentials_gcs_bucket_bitcoin_p2p_crawler.secret
