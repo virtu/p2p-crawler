@@ -6,11 +6,11 @@ import random
 import time
 from dataclasses import asdict, dataclass, field
 
-from address import Address
-from config import CrawlerSettings, NodeSettings
-from decorators import print_runtime_stats, timing
-from dnsseeds import get_addresses_from_dns_seeds
-from node import Node
+from .address import Address
+from .config import CrawlerSettings, NodeSettings
+from .decorators import print_runtime_stats, timing
+from .dnsseeds import get_addresses_from_dns_seeds
+from .node import Node
 
 
 @dataclass

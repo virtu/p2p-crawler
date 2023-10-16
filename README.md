@@ -1,5 +1,23 @@
 # Bitcoin P2P network crawler
 
+## NEW
+
+## Tests
+
+A test run can be executed with, e.g.,:
+
+```shell
+  nix run . -- \
+    --no-store-to-gcs \
+    --node-share 0.03 \
+    --delay-start 5 \
+    --ip-connect-timeout 2 --ip-message-timeout 2 --ip-getaddr-timeout 2 \
+    --tor-connect-timeout 2 --tor-message-timeout 2 --tor-getaddr-timeout 2 \
+    --i2p-connect-timeout 2 --i2p-message-timeout 2 --i2p-getaddr-timeout 2
+```
+
+## OLD
+
 Crawler for the Bitcoin P2P network. Collects data greedily. Fully dockerized, simple to
 deploy, comes with IPv4, IPv6, Onion and I2P support by default.
 

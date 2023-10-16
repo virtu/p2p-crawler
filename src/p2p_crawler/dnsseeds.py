@@ -3,8 +3,8 @@
 import logging as log
 import socket
 
-from address import Address
-from decorators import timing
+from .address import Address
+from .decorators import timing
 
 DNS_SEEDS = [
     "seed.bitcoin.sipa.be",

@@ -11,7 +11,7 @@ from ipaddress import IPv6Address
 from random import randint
 from typing import ClassVar
 
-from address import Address
+from .address import Address
 
 MAINNET_NETWORK_MAGIC = b"\xF9\xBE\xB4\xD9"
 

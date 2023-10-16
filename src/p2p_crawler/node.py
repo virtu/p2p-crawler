@@ -8,12 +8,11 @@ import time
 from dataclasses import asdict, dataclass, field
 from functools import cached_property
 
-from decorators import timing
-from network import Address, Socket
-from protocol import (AddrMessage, AddrV2Message, GetAddrMessage,
-                      SendAddrV2Message, VerAckMessage, VersionMessage)
-
-from config import NodeSettings, TimeoutSettings
+from .config import NodeSettings, TimeoutSettings
+from .decorators import timing
+from .network import Address, Socket
+from .protocol import (AddrMessage, AddrV2Message, GetAddrMessage,
+                       SendAddrV2Message, VerAckMessage, VersionMessage)
 
 
 @dataclass

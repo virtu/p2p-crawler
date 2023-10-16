@@ -1,19 +1,20 @@
 """Module for persisting crawler output."""
 
 import bz2
+import csv
 import json
 import logging as log
 import os
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
 
-import pandas as pd
-from address import Address
-from config import LogSettings, ResultSettings
 from google.cloud import storage
 
-from crawler import Crawler
+from .address import Address
+from .config import LogSettings, ResultSettings
+from .crawler import Crawler
 
 
 @dataclass
@@ -128,19 +129,30 @@ class Output:
         Output.dict_to_bz2(dest, crawler_data)
 
     def write_reachable_nodes(self):
-        """Write reachable nodes data as CSV."""
+        """Write reachable nodes data as CSV. Order by handshake timestamp."""
         time_start = time.time()
-        df = pd.DataFrame([node.get_stats() for node in self.crawler.nodes.reachable])
-        df = df.sort_values(by=["handshake_timestamp"])
+
+        reachable_nodes = [node.get_stats() for node in self.crawler.nodes.reachable]
+        if not reachable_nodes:
+            log.warning("No reachable nodes found. Not writing reachable nodes CSV.")
+            return
+        reachable_nodes.sort(key=lambda x: x["handshake_timestamp"])
+
         dest = Path(f"{self.result_settings.reachable_nodes}.bz2")
-        df.to_csv(dest, index=False, compression="bz2")
+        with bz2.open(dest, "wt") as csv_compressed:
+            fieldnames = reachable_nodes[0].keys()
+            writer = csv.DictWriter(csv_compressed, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(reachable_nodes)
+
         runtime = time.time() - time_start
+        size = sum(sys.getsizeof(node.values()) for node in reachable_nodes)
         log.info(
             "Wrote %s (size=%.1fkB, uncompressed=%.1fkB, ratio=%.1f, runtime=%.1fs)",
             dest,
             dest.stat().st_size / 1024,
-            df.memory_usage(index=True).sum() / 1024,
-            df.memory_usage(index=True).sum() / dest.stat().st_size,
+            size / 1024,
+            size / dest.stat().st_size,
             runtime,
         )
 

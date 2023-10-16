@@ -6,9 +6,10 @@ import time
 from dataclasses import dataclass, field
 
 import i2plib
-from address import Address
-from protocol import NetworkEnvelope, PingMessage, PongMessage
 from python_socks.async_.asyncio import Proxy
+
+from .address import Address
+from .protocol import NetworkEnvelope, PingMessage, PongMessage
 
 
 @dataclass
