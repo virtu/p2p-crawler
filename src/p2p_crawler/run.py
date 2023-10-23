@@ -8,10 +8,9 @@ import os
 import sys
 from pathlib import Path
 
-from config import LogSettings, Settings, parse_args
-from output import Output
-
-from crawler import Crawler
+from .config import LogSettings, Settings, parse_args
+from .crawler import Crawler
+from .output import Output
 
 
 def check_requirements():
