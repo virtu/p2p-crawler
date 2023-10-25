@@ -6,7 +6,7 @@ import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 
 @dataclass

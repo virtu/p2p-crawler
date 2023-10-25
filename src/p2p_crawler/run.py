@@ -6,6 +6,7 @@ import asyncio
 import logging as log
 import os
 import sys
+import time
 from pathlib import Path
 
 from .config import LogSettings, Settings, parse_args
@@ -55,6 +56,7 @@ def init_logger(settings: LogSettings):
     log_fmt = log.Formatter(
         fmt="%(asctime)s | %(levelname)-8s | %(message)s", datefmt="%Y-%m-%dT%H:%M:%SZ"
     )
+    log.Formatter.converter = time.gmtime
     root_logger = log.getLogger()
     root_logger.setLevel(log.NOTSET)
 
