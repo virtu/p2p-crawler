@@ -5,6 +5,13 @@ All notable changes are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] - 2023-10-26
+
+### Changed
+
+  - Fix bug with result output directory breaking when using nested directories
+  - Replace build info (read from files) with version info (from source and git)
+
 ## [2.1.1] - 2023-10-25
 
 ### Changed

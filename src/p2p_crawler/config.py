@@ -6,39 +6,39 @@ import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-__version__ = "2.1.1"
+import git
+
+__version__ = "2.1.2"
 
 
 @dataclass
-class BuildInfo:
-    """Build information for crawler."""
+class VersionInfo:
+    """Version information for crawler."""
 
-    time: str  # time of build
     version: str  # version of build
-    git_branch: str  # build branch
-    git_commit: str  # build commit hash
-    git_status: str  # repo status at time of build
+    git_hash: str  # git repo commit hash
+    git_dirty: str  # git repo state
 
     @classmethod
-    def parse(cls, args):
+    def get_info(cls):
         """Read build info and return instance."""
-        path = args.build_info_path
         return cls(
-            time=cls.read_file(path / "build-time.txt"),
-            version=cls.read_file(path / "/build-version.txt"),
-            git_branch=cls.read_file(path / "/build-git-branch.txt"),
-            git_commit=cls.read_file(path / "/build-git-commit.txt"),
-            git_status=cls.read_file(path / "/build-git-status.txt"),
+            version=__version__,
+            git_hash=cls.get_git_hash(),
+            git_dirty=cls.git_is_dirty(),
         )
 
     @staticmethod
-    def read_file(path: Path) -> str:
-        """Read and return contents of file."""
-        if not path.is_file():
-            print("warning: unable to read build info from %s: not a file", path)
-            return "unknown"
-        with open(path, "r", encoding="UTF-8") as f:
-            return f.readline().rstrip()
+    def get_git_hash() -> str:
+        """Get hash of current git repo."""
+        repo = git.Repo(".")
+        return repo.head.object.hexsha
+
+    @staticmethod
+    def git_is_dirty() -> str:
+        """Get status of current git repo."""
+        repo = git.Repo(".")
+        return repo.is_dirty()
 
 
 @dataclass
@@ -98,7 +98,7 @@ class LogSettings(ComponentSettings):
     @classmethod
     def parse(cls, args):
         """Create class instance from arguments."""
-        prefix = f"{args.result_path.name}/{args.timestamp + '_v' + __version__}"
+        prefix = f"{args.result_path}/{args.timestamp + '_v' + __version__}"
         return cls(
             log_level=args.log_level.upper(),
             store_debug_log=args.store_debug_log,
@@ -121,9 +121,9 @@ class ResultSettings(ComponentSettings):
     @classmethod
     def parse(cls, args):
         """Create class instance from arguments."""
-        prefix = f"{args.result_path.name}/{args.timestamp + '_v' + __version__}"
+        prefix = f"{args.result_path}/{args.timestamp + '_v' + __version__}"
         return cls(
-            path=Path(args.result_path.name),
+            path=Path(args.result_path),
             reachable_nodes=Path(f"{prefix}_reachable_nodes.csv"),
             crawler_stats=Path(f"{prefix}_crawler_stats.json"),
             address_stats=Path(f"{prefix}_address_stats.json"),
@@ -153,7 +153,7 @@ class NodeSettings(ComponentSettings):
 class CrawlerSettings(ComponentSettings):
     """Settings for the crawler."""
 
-    build_info: BuildInfo
+    version_info: VersionInfo
     delay_start: int
     num_workers: int
     node_share: float
@@ -164,7 +164,7 @@ class CrawlerSettings(ComponentSettings):
     def parse(cls, args):
         """Create class instance from arguments."""
         return cls(
-            build_info=BuildInfo.parse(args),
+            version_info=VersionInfo.get_info(),
             delay_start=args.delay_start,
             num_workers=args.num_workers,
             node_share=args.node_share,
