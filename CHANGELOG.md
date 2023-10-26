@@ -5,6 +5,15 @@ All notable changes are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2023-10-26
+
+### Changed
+
+  - Single source version info (from `pyproject.toml`)
+  - Simplify version information (remove auto-detection of git info using `gitpython`
+    dependency; instead use new `--extra-version-info` argument to specify additional
+    build info (such as a git commit hash)
+
 ## [2.1.2] - 2023-10-26
 
 ### Changed

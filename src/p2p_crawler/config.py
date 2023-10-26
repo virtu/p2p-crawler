@@ -1,44 +1,29 @@
 """This module contains configuration options for the crawler."""
 
 import argparse
+import importlib.metadata
 import os
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-import git
-
-__version__ = "2.1.2"
+__version__ = importlib.metadata.version(__package__ or __name__)
 
 
 @dataclass
 class VersionInfo:
     """Version information for crawler."""
 
-    version: str  # version of build
-    git_hash: str  # git repo commit hash
-    git_dirty: str  # git repo state
+    version: str  # package version
+    extra: str  # extra version info (e.g. git commit hash)
 
     @classmethod
-    def get_info(cls):
-        """Read build info and return instance."""
+    def get_info(cls, args):
+        """Read version info and return instance."""
         return cls(
             version=__version__,
-            git_hash=cls.get_git_hash(),
-            git_dirty=cls.git_is_dirty(),
+            extra=args.extra_version_info,
         )
-
-    @staticmethod
-    def get_git_hash() -> str:
-        """Get hash of current git repo."""
-        repo = git.Repo(".")
-        return repo.head.object.hexsha
-
-    @staticmethod
-    def git_is_dirty() -> str:
-        """Get status of current git repo."""
-        repo = git.Repo(".")
-        return repo.is_dirty()
 
 
 @dataclass
@@ -164,7 +149,7 @@ class CrawlerSettings(ComponentSettings):
     def parse(cls, args):
         """Create class instance from arguments."""
         return cls(
-            version_info=VersionInfo.get_info(),
+            version_info=VersionInfo.get_info(args),
             delay_start=args.delay_start,
             num_workers=args.num_workers,
             node_share=args.node_share,
@@ -260,10 +245,10 @@ def add_general_args(parser):
     )
 
     parser.add_argument(
-        "--build-info-path",
-        type=Path,
-        default=Path(os.environ.get("BUILD_INFO_PATH", "/")),
-        help="Path to build info files",
+        "--extra-version-info",
+        type=str,
+        default=None,
+        help="Extra version info (e.g., git commit hash)",
     )
 
     parser.add_argument(
