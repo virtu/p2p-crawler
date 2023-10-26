@@ -119,11 +119,32 @@ class ResultSettings(ComponentSettings):
 
 
 @dataclass
+class NetworkSettings(ComponentSettings):
+    """Settings related to networking."""
+
+    tor_proxy_host: str
+    tor_proxy_port: str
+    i2p_sam_host: str
+    i2p_sam_port: str
+
+    @classmethod
+    def parse(cls, args):
+        """Create class instance from arguments."""
+        return cls(
+            tor_proxy_host=args.tor_proxy_host,
+            tor_proxy_port=args.tor_proxy_port,
+            i2p_sam_host=args.i2p_sam_host,
+            i2p_sam_port=args.i2p_sam_port,
+        )
+
+
+@dataclass
 class NodeSettings(ComponentSettings):
     """Settings for nodes."""
 
     timeouts: dict[str, TimeoutSettings]
     getaddr_retries: int
+    network_settings: NetworkSettings
 
     @classmethod
     def parse(cls, args):
@@ -131,6 +152,7 @@ class NodeSettings(ComponentSettings):
         return cls(
             timeouts=TimeoutSettings.parse(args),
             getaddr_retries=args.getaddr_retries,
+            network_settings=NetworkSettings.parse(args),
         )
 
 
@@ -228,6 +250,34 @@ def add_general_args(parser):
         type=int,
         default=os.environ.get("GETADDR_RETRIES", 2),
         help="Number of retries for getaddr requests for reachable nodes",
+    )
+
+    parser.add_argument(
+        "--tor-proxy-host",
+        type=str,
+        default="127.0.0.1",
+        help="SOCKS5 proxy host for Tor",
+    )
+
+    parser.add_argument(
+        "--tor-proxy-port",
+        type=int,
+        default=9050,
+        help="SOCKS5 proxy port for Tor",
+    )
+
+    parser.add_argument(
+        "--i2p-sam-host",
+        type=str,
+        default="127.0.0.1",
+        help="SAM router host for I2P",
+    )
+
+    parser.add_argument(
+        "--i2p-sam-port",
+        type=int,
+        default=7656,
+        help="SAM router port for I2P",
     )
 
     parser.add_argument(
