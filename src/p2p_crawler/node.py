@@ -27,7 +27,7 @@ class Node:
     @cached_property
     def _socket(self) -> Socket:
         """Lazy-create socket."""
-        return Socket()
+        return Socket(self.settings.network_settings)
 
     @cached_property
     def _timeouts(self) -> TimeoutSettings:

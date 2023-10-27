@@ -9,6 +9,7 @@ import i2plib
 from python_socks.async_.asyncio import Proxy
 
 from .address import Address
+from .config import NetworkSettings
 from .protocol import NetworkEnvelope, PingMessage, PongMessage
 
 
@@ -16,6 +17,7 @@ from .protocol import NetworkEnvelope, PingMessage, PongMessage
 class Socket:
     """Class to represent connections to Bitcoin nodes."""
 
+    network_settings: NetworkSettings
     connected: bool = False
     stats: dict[str, int] = field(default_factory=dict)
     _reader: asyncio.StreamReader = field(init=False)
@@ -87,7 +89,8 @@ class Socket:
     async def _connect_onion(self, addr: Address, timeout: int):
         """Connect to Onion v2/v3 node."""
         time_start = time.time()
-        proxy = Proxy.from_url("socks5://tor:9050")
+        conf = self.network_settings
+        proxy = Proxy.from_url(f"socks5://{conf.tor_proxy_host}:{conf.tor_proxy_port}")
         fut = proxy.connect(dest_host=addr.host, dest_port=addr.port, timeout=timeout)
         sock = await asyncio.wait_for(fut, timeout=timeout)
         self.stats["time_connect_proxy"] = int((time.time() - time_start) * 1000)
@@ -98,8 +101,13 @@ class Socket:
         """Connect to I2P node."""
         time_start = time.time()
         sid = i2plib.utils.generate_session_id()
-        fut = i2plib.create_session(sid, sam_address=("i2pd", 7656))
+        conf = self.network_settings
+        fut = i2plib.create_session(
+            sid, sam_address=(conf.i2p_sam_host, conf.i2p_sam_port)
+        )
         await asyncio.wait_for(fut, timeout=timeout)
         self.stats["time_connect_proxy"] = int((time.time() - time_start) * 1000)
-        fut = i2plib.stream_connect(sid, addr.host, sam_address=("i2pd", 7656))
+        fut = i2plib.stream_connect(
+            sid, addr.host, sam_address=(conf.i2p_sam_host, conf.i2p_sam_port)
+        )
         self._reader, self._writer = await asyncio.wait_for(fut, timeout=timeout)
