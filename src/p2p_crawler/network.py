@@ -44,9 +44,18 @@ class Socket:
             raise Exception(f"Parsing command {command} failed: {e}", command, e) from e
         return parsed
 
-    async def disconnect(self):
-        """Disconnect from address."""
+    async def disconnect(self, timeout=1):
+        """
+        Disconnect from address.
+
+        All data has been collected so default to a timeout of 1.
+        """
         self._writer.close()
+
+        time_start = time.time()
+        await self._writer.wait_closed()
+        time_close = int((time.time() - time_start) * 1000)
+        log.debug("Closed connection in %dms", time_close)
 
     async def connect(self, addr: Address, timeout: int):
         """Connect to address using approropriate proxies and timeouts."""
