@@ -266,11 +266,13 @@ class Crawler:
             success = await node.connect()
             self.stats.num_processed_nodes += 1
             if not success:
+                await node.disconnect()
                 self.nodes.set_unreachable(node)
                 continue
 
             success = await node.handshake()
             if not success:
+                await node.disconnect()
                 self.nodes.set_unreachable(node)
                 continue
 
