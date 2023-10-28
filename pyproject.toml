@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "p2p-crawler"
-version = "2.2.0"
+version = "2.2.1"
 description = "Crawler for Bitcoin's P2P network"
 authors = ["virtu <virtu@cryptic.to>"]
 license = "AGPLv3"
