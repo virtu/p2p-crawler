@@ -4,6 +4,7 @@ import asyncio
 import logging as log
 import time
 from dataclasses import dataclass, field
+from typing import ClassVar
 
 import i2plib
 from python_socks.async_.asyncio import Proxy
@@ -22,6 +23,7 @@ class Socket:
     stats: dict[str, int] = field(default_factory=dict)
     _reader: asyncio.StreamReader = field(init=False)
     _writer: asyncio.StreamWriter = field(init=False)
+    i2p_session_id: ClassVar = None
 
     def send(self, message):
         """Send message via socket."""
@@ -97,17 +99,24 @@ class Socket:
         fut = asyncio.open_connection(sock=sock)
         self._reader, self._writer = await asyncio.wait_for(fut, timeout=timeout)
 
+    async def _get_i2p_session_id(self):
+        """Return I2P session. Create session if it does not exist yet."""
+        if Socket.i2p_session_id:
+            return Socket.i2p_session_id
+
+        ns = self.network_settings
+        sid = i2plib.utils.generate_session_id()
+        await i2plib.create_session(sid, sam_address=(ns.i2p_sam_host, ns.i2p_sam_port))
+        Socket.i2p_session_id = sid
+        return sid
+
     async def _connect_i2p(self, addr: Address, timeout: int):
         """Connect to I2P node."""
-        time_start = time.time()
-        sid = i2plib.utils.generate_session_id()
+        self.stats["time_connect_proxy"] = 0
         conf = self.network_settings
-        fut = i2plib.create_session(
-            sid, sam_address=(conf.i2p_sam_host, conf.i2p_sam_port)
-        )
-        await asyncio.wait_for(fut, timeout=timeout)
-        self.stats["time_connect_proxy"] = int((time.time() - time_start) * 1000)
         fut = i2plib.stream_connect(
-            sid, addr.host, sam_address=(conf.i2p_sam_host, conf.i2p_sam_port)
+            await self._get_i2p_session_id(),
+            addr.host,
+            sam_address=(conf.i2p_sam_host, conf.i2p_sam_port),
         )
         self._reader, self._writer = await asyncio.wait_for(fut, timeout=timeout)
