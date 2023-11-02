@@ -1,54 +1,42 @@
 {
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  description = "Crawler for Bitcoin's P2P network";
 
-  outputs = { self, nixpkgs }:
+  inputs = {
+    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    poetry2nix = {
+      url = "github:nix-community/poetry2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = { self, nixpkgs, flake-utils, poetry2nix }: {
+    nixosModules.p2p-crawler = import ./module.nix self;
+  } // flake-utils.lib.eachDefaultSystem (system:
     let
-      supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
-      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-      pkgs = forAllSystems (system: nixpkgs.legacyPackages.${system});
+      pkgs = nixpkgs.legacyPackages.${system};
+      inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication defaultPoetryOverrides;
     in
     {
-      packages = forAllSystems (system: {
-        default = pkgs.${system}.poetry2nix.mkPoetryApplication {
+      packages = {
+        p2p-crawler = mkPoetryApplication {
           projectDir = self;
 
           # use python 3.9 due to breaking api change in asyncio
-          python = pkgs.${system}.python39;
+          python = pkgs.python39;
 
-          # extra dependencies for dependencies
-          overrides = pkgs.${system}.poetry2nix.defaultPoetryOverrides.extend
+          # extra nativeBuildInputs for dependencies
+          overrides = defaultPoetryOverrides.extend
             (self: super: {
               i2plib = super.i2plib.overridePythonAttrs
-                (old: { buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ]; });
+                (old: { nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ super.setuptools ]; });
             });
         };
-      });
+        default = self.packages.${system}.p2p-crawler;
+      };
 
-      devShells = forAllSystems (system: {
-        default = pkgs.${system}.mkShellNoCC
-          {
-            packages = with pkgs.${system}; [
-              (poetry2nix.mkPoetryEnv {
-                projectDir = self;
-
-                # use python 3.9 due to breaking api change in asyncio
-                python = python39;
-
-                # extra dependencies for dependencies
-                overrides = poetry2nix.defaultPoetryOverrides.extend
-                  (self: super: {
-                    i2plib = super.i2plib.overridePythonAttrs
-                      (old: { buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ]; });
-                  });
-              })
-              poetry
-            ];
-            shellHook = ''
-              echo "Executed devShell shell hook."
-              alias testrun="poetry run p2p-crawler --help"
-            '';
-          };
-      });
-    };
+      devShells.default = pkgs.mkShell {
+        packages = [ pkgs.poetry ];
+      };
+    });
 }
-
