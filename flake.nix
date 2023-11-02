@@ -10,32 +10,33 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-        inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication defaultPoetryOverrides;
-      in
-      {
-        packages = {
-          p2p-crawler = mkPoetryApplication {
-            projectDir = self;
+  outputs = { self, nixpkgs, flake-utils, poetry2nix }: {
+    nixosModules.p2p-crawler = import ./module.nix self;
+  } // flake-utils.lib.eachDefaultSystem (system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+      inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication defaultPoetryOverrides;
+    in
+    {
+      packages = {
+        p2p-crawler = mkPoetryApplication {
+          projectDir = self;
 
-            # use python 3.9 due to breaking api change in asyncio
-            python = pkgs.python39;
+          # use python 3.9 due to breaking api change in asyncio
+          python = pkgs.python39;
 
-            # extra nativeBuildInputs for dependencies
-            overrides = defaultPoetryOverrides.extend
-              (self: super: {
-                i2plib = super.i2plib.overridePythonAttrs
-                  (old: { nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ super.setuptools ]; });
-              });
-          };
-          default = self.packages.${system}.p2p-crawler;
+          # extra nativeBuildInputs for dependencies
+          overrides = defaultPoetryOverrides.extend
+            (self: super: {
+              i2plib = super.i2plib.overridePythonAttrs
+                (old: { nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ super.setuptools ]; });
+            });
         };
+        default = self.packages.${system}.p2p-crawler;
+      };
 
-        devShells.default = pkgs.mkShell {
-          packages = [ pkgs.poetry ];
-        };
-      });
+      devShells.default = pkgs.mkShell {
+        packages = [ pkgs.poetry ];
+      };
+    });
 }
