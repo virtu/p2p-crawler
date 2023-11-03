@@ -93,6 +93,26 @@ class LogSettings(ComponentSettings):
 
 
 @dataclass
+class GCSSettings(ComponentSettings):
+    """GCS-related settings."""
+
+    store: bool
+    bucket: str
+    location: str
+    credentials: str
+
+    @classmethod
+    def parse(cls, args):
+        """Create class instance from arguments."""
+        return cls(
+            store=args.store_to_gcs,
+            bucket=args.gcs_bucket,
+            location=args.gcs_location,
+            credentials=args.gcs_credentials,
+        )
+
+
+@dataclass
 class ResultSettings(ComponentSettings):
     """Paths for output files."""
 
@@ -100,9 +120,7 @@ class ResultSettings(ComponentSettings):
     reachable_nodes: Path
     crawler_stats: Path
     address_stats: Path
-    store_to_gcs: bool
-    gcs_bucket: str
-    gcs_location: str
+    gcs: GCSSettings
 
     @classmethod
     def parse(cls, args):
@@ -113,9 +131,7 @@ class ResultSettings(ComponentSettings):
             reachable_nodes=Path(f"{prefix}_reachable_nodes.csv"),
             crawler_stats=Path(f"{prefix}_crawler_stats.json"),
             address_stats=Path(f"{prefix}_address_stats.json"),
-            store_to_gcs=args.store_to_gcs,
-            gcs_bucket=args.gcs_bucket,
-            gcs_location=args.gcs_location,
+            gcs=GCSSettings.parse(args),
         )
 
 
@@ -327,14 +343,20 @@ def add_general_args(parser):
     parser.add_argument(
         "--gcs-bucket",
         type=str,
-        default="bitcoin_p2p_crawler",
-        help="GCS bucket (default: bitcoin_p2p_crawler)",
+        default=None,
+        help="GCS bucket (default: None)",
     )
     parser.add_argument(
         "--gcs-location",
         type=str,
         default=f"sources/{socket.gethostname()}",
         help="GCS location (default: sources/<hostname>)",
+    )
+    parser.add_argument(
+        "--gcs-credentials",
+        type=str,
+        default=None,
+        help="GCS credentials (service account private key file file, default: None)",
     )
 
 

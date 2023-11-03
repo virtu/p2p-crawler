@@ -51,7 +51,7 @@ class Output:
         """
 
         self.write_files()
-        if self.result_settings.store_to_gcs:
+        if self.result_settings.gcs.store:
             self.upload_files_to_gcs()
 
     def write_files(self):
@@ -188,8 +188,10 @@ class Output:
     def upload_files_to_gcs(self):
         """Persist files to GCS."""
 
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(self.result_settings.gcs_bucket)
+        storage_client = storage.Client.from_service_account_json(
+            self.result_settings.gcs.credentials
+        )
+        bucket = storage_client.bucket(self.result_settings.gcs.bucket)
 
         paths = [
             self.result_settings.address_stats,
@@ -200,14 +202,14 @@ class Output:
             paths.append(self.log_settings.debug_log_path)
 
         for path in paths:
-            blob_dest = self.result_settings.gcs_location + "/" + path.name + ".bz2"
+            blob_dest = self.result_settings.gcs.location + "/" + path.name + ".bz2"
             blob = bucket.blob(blob_dest)
             xfer_start = time.time()
             blob.upload_from_filename(f"{path}.bz2")
             log.info(
                 "Uploaded %s to gs://%s/%s in %dms",
                 path,
-                self.result_settings.gcs_bucket,
+                self.result_settings.gcs.bucket,
                 blob_dest,
                 int((time.time() - xfer_start) * 1000),
             )
