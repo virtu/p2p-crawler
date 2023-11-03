@@ -28,20 +28,23 @@ def sanity_check_settings(settings):
 
     Logger has not been set up yet, so use print().
     Carries out the following checks:
-      - Ensure GCS credentials are available when storing to GCS was requested
+      - Ensure all required GCS settings are available when storing to GCS was requested
       - Create results directory if it does not exist
     """
 
-    if settings.result_settings.store_to_gcs:
-        env_var = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-        if not env_var:
-            print(
-                "[ERROR] --store-to-gcs set but GOOGLE_APPLICATION_CREDENTIALS environment variable not set!"
-            )
+    if settings.result_settings.gcs.store:
+        if not settings.result_settings.gcs.bucket:
+            print("[ERROR] --store-to-gcs set but --gcs-bucket not set!")
             sys.exit(os.EX_CONFIG)
-        p = Path(env_var)
-        if not p.is_file():
-            print(f"[ERROR] --store-to-gcs set but file {p} does not exist!")
+        if not settings.result_settings.gcs.location:
+            print("[ERROR] --store-to-gcs set but --gcs-location not set!")
+            sys.exit(os.EX_CONFIG)
+        if not settings.result_settings.gcs.credentials:
+            print("[ERROR] --store-to-gcs set but --gcs-credentials not set!")
+            sys.exit(os.EX_CONFIG)
+        f = Path(settings.result_settings.gcs.credentials)
+        if not f.is_file():
+            print(f"[ERROR] --store-to-gcs set but GCS credential file {f} not found!")
             sys.exit(os.EX_CONFIG)
 
     if not (p := settings.result_settings.path).exists():
