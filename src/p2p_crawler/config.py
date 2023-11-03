@@ -3,6 +3,7 @@
 import argparse
 import importlib.metadata
 import os
+import socket
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -320,20 +321,20 @@ def add_general_args(parser):
     parser.add_argument(
         "--store-to-gcs",
         action=argparse.BooleanOptionalAction,
-        default=str(os.environ.get("STORE_TO_GCS", False)).lower() == "true",
-        help="Store results to GCS",
+        default=False,
+        help="Store results to GCS (default: disabled)",
     )
     parser.add_argument(
         "--gcs-bucket",
         type=str,
-        default=os.environ.get("GCS_BUCKET", "bitcoin_p2p_crawler"),
-        help="GCS bucket",
+        default="bitcoin_p2p_crawler",
+        help="GCS bucket (default: bitcoin_p2p_crawler)",
     )
     parser.add_argument(
         "--gcs-location",
         type=str,
-        default=os.environ.get("GCS_LOCATION", "undefined"),
-        help="GCS location",
+        default=f"sources/{socket.gethostname()}",
+        help="GCS location (default: sources/<hostname>)",
     )
 
 
