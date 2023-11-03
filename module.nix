@@ -102,16 +102,22 @@ in
       gcs = {
         enable = mkEnableOption "storing to GCS";
         bucket = mkOption {
-          type = types.str;
+          type = types.nullOr types.str;
           default = null;
           example = "bitcoin_p2p_crawler";
           description = mdDoc "GCS bucket.";
         };
         location = mkOption {
-          type = types.str;
+          type = types.nullOr types.str;
           default = null;
           example = "foo/bar";
           description = mdDoc "Location in GCS bucket.";
+        };
+        credentials = mkOption {
+          type = types.nullOr types.path;
+          default = null;
+          example = "secrets/key.json";
+          description = mdDoc "Path to GCS credentials file.";
         };
       };
 
@@ -231,7 +237,7 @@ in
           --result-path ${cfg.result-path} \
           ${if cfg.store-debug-log then "--store-debug-log" else "--no-store-debug-log"} \
           ${if cfg.gcs.enable
-then "--store-to-gcs --gcs-bucket ${cfg.gcs.bucket} --gcs-location ${cfg.gcs.location}"
+then "--store-to-gcs ${optionalString (cfg.gcs.bucket != null) "--gcs-bucket ${cfg.gcs.bucket}"} ${optionalString (cfg.gcs.location != null) "--gcs-location ${cfg.gcs.location}"} ${optionalString (cfg.gcs.credentials != null) "--gcs-credentials ${cfg.gcs.credentials}"}"
 else "--no-store-to-gcs"} \
           ${optionalString (cfg.timestamp != null) "--timestamp=${cfg.timestamp}" } \
           ${optionalString (cfg.tor.enable != false) "--tor-proxy-host=${cfg.tor.proxy-host} --tor-proxy-port=${toString cfg.tor.proxy-port}" } \

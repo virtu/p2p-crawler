@@ -46,6 +46,10 @@ def sanity_check_settings(settings):
         if not f.is_file():
             print(f"[ERROR] --store-to-gcs set but GCS credential file {f} not found!")
             sys.exit(os.EX_CONFIG)
+        with open(f, encoding="UTF-8") as file:
+            if not file.readable():
+                print(f"[ERROR] GCS credential file {f} exists but not readable!")
+                sys.exit(os.EX_CONFIG)
 
     if not (p := settings.result_settings.path).exists():
         print(f"[WARNING] result path {p} does not exist.")
