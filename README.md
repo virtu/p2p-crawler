@@ -7,8 +7,10 @@
 A test run can be executed with, e.g.,:
 
 ```shell
-  nix run . -- \
-    --no-store-to-gcs \
+nix run . -- \
+    --store-to-gcs \
+    --gcs-bucket bitcoin_p2p_crawler \
+    --gcs-credentials key.json \
     --node-share 0.03 \
     --delay-start 5 \
     --ip-connect-timeout 2 --ip-message-timeout 2 --ip-getaddr-timeout 2 \
