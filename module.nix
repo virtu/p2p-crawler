@@ -224,7 +224,7 @@ in
     systemd.services.p2p-crawler = {
       description = "p2p-crawler";
       # service should only run when scheduled, not when system is booted so no
-      wantedBy = [ "multi-user.target" ];
+      # wantedBy = [ "multi-user.target" ];
       after = [ "network-online.target" ];
 
       serviceConfig = {
