@@ -5,6 +5,20 @@ All notable changes are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2023-11-06
+
+### Changed
+
+  - Provide flake support (`flake run/develop` and nix services)
+  - Update `README.md`
+  - Improve handling of storing to GCS
+    - Set the default GCS location to `sources/<hostname>`
+    - Allow specifying GCS credential file via `--gcs-credentials` command-line argument
+    - Minor internal improvements (better default settings, dedicated dataclass for GCS
+      settings, better sanity checks, etc.)
+
+### Changed
+
 ## [2.2.2] - 2023-10-28
 
 ### Changed
