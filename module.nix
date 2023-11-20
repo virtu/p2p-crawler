@@ -132,13 +132,13 @@ in
             };
             message = mkOption {
               type = types.int;
-              default = 5;
+              default = 60;
               example = 10;
               description = mdDoc "Timeout for replies from peer via IPv4 and IPv6.";
             };
             getaddr = mkOption {
               type = types.int;
-              default = 30;
+              default = 60;
               example = 10;
               description = mdDoc "Max. duration for receiving addr messages via IPv4 and IPv6.";
             };

@@ -105,7 +105,7 @@ def main():
 
     settings = init()
     crawler = Crawler(settings.crawler_settings)
-    asyncio.run(crawler.run(), debug=False)
+    asyncio.run(crawler.run())
     Output(settings.result_settings, settings.log_settings, crawler).persist()
 
 

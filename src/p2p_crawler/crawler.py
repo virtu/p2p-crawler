@@ -173,6 +173,17 @@ class CrawlerNodeSets:
         self.unreachable.add(node)
 
     @timing
+    def retry_or_set_unreachable(self, node):
+        """If node has retries left, decrement handshake retry counter and
+        reinsert node into pending node set so it can be retried later. If
+        retries have been used up, mark node as unreachable."""
+        if node.has_handshake_attempts_left():
+            self.processing.remove(node)
+            self.pending.add(node)
+        else:
+            self.set_unreachable(node)
+
+    @timing
     def add_node_peers(self, node, adv_nodes):
         """
         Add nodes advertised (`adv_nodes`) by `node` to the set of nodes.
@@ -273,7 +284,7 @@ class Crawler:
             success = await node.handshake()
             if not success:
                 await node.disconnect()
-                self.nodes.set_unreachable(node)
+                self.nodes.retry_or_set_unreachable(node)
                 continue
 
             if random.random() < self.settings.node_share:
@@ -320,7 +331,7 @@ class Crawler:
                 len(self.nodes.processing),
             )
 
-            if not await self.nodes.nodes_left():
+            if not (self.nodes.pending or self.nodes.processing or self.nodes.next):
                 log.info("[STATUS] No more nodes and no more active crawlers: exiting")
                 self.stats.runtime = int(time.time() - self.stats.time_started)
                 return

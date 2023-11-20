@@ -160,7 +160,8 @@ class NodeSettings(ComponentSettings):
     """Settings for nodes."""
 
     timeouts: dict[str, TimeoutSettings]
-    getaddr_retries: int
+    handshake_attempts: int
+    getaddr_attempts: int
     network_settings: NetworkSettings
 
     @classmethod
@@ -168,7 +169,8 @@ class NodeSettings(ComponentSettings):
         """Create class instance from arguments."""
         return cls(
             timeouts=TimeoutSettings.parse(args),
-            getaddr_retries=args.getaddr_retries,
+            handshake_attempts=args.handshake_attempts,
+            getaddr_attempts=args.getaddr_attempts,
             network_settings=NetworkSettings.parse(args),
         )
 
@@ -219,7 +221,7 @@ def add_timeout_args(parser):
     """Add command-line arguments related to network timeouts."""
 
     settings = {
-        "IP": {"connect": 3, "message": 5, "getaddr": 30},
+        "IP": {"connect": 3, "message": 60, "getaddr": 60},
         "TOR": {"connect": 30, "message": 60, "getaddr": 120},
         "I2P": {"connect": 120, "message": 120, "getaddr": 240},
     }
@@ -256,6 +258,13 @@ def add_general_args(parser):
     )
 
     parser.add_argument(
+        "--handshake-attempts",
+        type=int,
+        default=os.environ.get("HANDSHAKE_ATTEMPTS", 3),
+        help="Number of times to attempt node handshake if it does not succeed at first",
+    )
+
+    parser.add_argument(
         "--delay-start",
         type=int,
         default=os.environ.get("DELAY_START", 10),
@@ -263,10 +272,10 @@ def add_general_args(parser):
     )
 
     parser.add_argument(
-        "--getaddr-retries",
+        "--getaddr-attempts",
         type=int,
-        default=os.environ.get("GETADDR_RETRIES", 2),
-        help="Number of retries for getaddr requests for reachable nodes",
+        default=os.environ.get("GETADDR_ATTEMPTS", 2),
+        help="Number of times to attempt getaddr requests for reachable nodes",
     )
 
     parser.add_argument(
