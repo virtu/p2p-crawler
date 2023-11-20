@@ -73,6 +73,14 @@ class Node:
         except Exception as e:  # pylint: disable=broad-except
             log.debug("Could not disconnect to from %s: %s", self, repr(e))
 
+    def has_handshake_attempts_left(self):
+        """Return true if node has handshake attempts left; false otherwise."""
+        if "handshake_attempts" not in self.stats:
+            return True
+        if self.stats["handshake_attempts"] < self.settings.handshake_attempts:
+            return True
+        return False
+
     @timing
     async def handshake(self) -> bool:
         """
@@ -83,7 +91,9 @@ class Node:
         message sent by the peer.
         """
 
-        self.stats["handshake_timestamp"] = int(time.time())
+        self.stats["handshake_attempts"] = self.stats.get("handshake_attempts", 0) + 1
+        time_start = time.time()
+        self.stats["handshake_timestamp"] = int(time_start)
         self._socket.send(VersionMessage())
 
         try:
@@ -91,12 +101,25 @@ class Node:
                 VersionMessage, timeout=self._timeouts.message
             )
         except Exception as e:  # pylint: disable=broad-except
-            log.debug("Handshake with node %s failed: %s", self, repr(e))
+            log.debug(
+                "Handshake attempt %d/%d with node %s failed: %s",
+                self.stats["handshake_attempts"],
+                self.settings.handshake_attempts,
+                self,
+                repr(e),
+            )
             self.stats["handshake_successful"] = False
             return False
 
-        log.debug("Handshake with node %s successful", self)
         self.stats["handshake_successful"] = True
+        self.stats["handshake_duration"] = int((time.time() - time_start) * 1000)
+        log.debug(
+            "Handshake attempt %d/%d with node %s successful (duration: %dms)",
+            self.stats["handshake_attempts"],
+            self.settings.handshake_attempts,
+            self,
+            self.stats["handshake_duration"],
+        )
         self._socket.send(SendAddrV2Message())
         self._socket.send(VerAckMessage())
         self._process_version_message(msg)
@@ -194,6 +217,8 @@ class Node:
         relevant_stats = [
             "handshake_timestamp",
             "time_connect",
+            "handshake_attempts",
+            "handshake_duration",
             "version",
             "services",
             "user_agent",
