@@ -76,11 +76,11 @@ in
         description = mdDoc "Seconds to wait before starting the crawler.";
       };
 
-      getaddr-retries = mkOption {
+      getaddr-attempts = mkOption {
         type = types.int;
         default = 2;
-        example = 1;
-        description = mdDoc "Number of retries for getaddr requests.";
+        example = 3;
+        description = mdDoc "Number of attempts for getaddr requests.";
       };
 
       log-level = mkOption {
@@ -232,7 +232,7 @@ in
           --node-share ${toString cfg.node-share} \
           --delay-start ${toString cfg.delay-start} \
           --num-workers ${toString cfg.workers} \
-          --getaddr-retries ${toString cfg.getaddr-retries} \
+          --getaddr-attempts ${toString cfg.getaddr-attempts} \
           --log-level ${cfg.log-level} \
           --result-path ${cfg.result-path} \
           ${if cfg.store-debug-log then "--store-debug-log" else "--no-store-debug-log"} \
