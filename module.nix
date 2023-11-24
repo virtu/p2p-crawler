@@ -132,13 +132,13 @@ in
             };
             message = mkOption {
               type = types.int;
-              default = 60;
+              default = 30;
               example = 10;
               description = mdDoc "Timeout for replies from peer via IPv4 and IPv6.";
             };
             getaddr = mkOption {
               type = types.int;
-              default = 60;
+              default = 70;
               example = 10;
               description = mdDoc "Max. duration for receiving addr messages via IPv4 and IPv6.";
             };
@@ -147,19 +147,19 @@ in
           {
             connect = mkOption {
               type = types.int;
-              default = 30;
+              default = 100;
               example = 10;
               description = mdDoc "Timeout for establishing connections via TOR.";
             };
             message = mkOption {
               type = types.int;
-              default = 60;
+              default = 40;
               example = 10;
               description = mdDoc "Timeout for replies from peer via TOR.";
             };
             getaddr = mkOption {
               type = types.int;
-              default = 120;
+              default = 90;
               example = 10;
               description = mdDoc "Max. duration for receiving addr messages via TOR.";
             };
@@ -168,19 +168,19 @@ in
           {
             connect = mkOption {
               type = types.int;
-              default = 120;
+              default = 30;
               example = 10;
               description = mdDoc "Timeout for establishing connections via I2P.";
             };
             message = mkOption {
               type = types.int;
-              default = 120;
+              default = 80;
               example = 10;
               description = mdDoc "Timeout for replies from peer via I2P.";
             };
             getaddr = mkOption {
               type = types.int;
-              default = 240;
+              default = 170;
               example = 10;
               description = mdDoc "Max. duration for receiving addr messages via I2P.";
             };
