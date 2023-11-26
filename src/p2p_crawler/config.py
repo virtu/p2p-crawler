@@ -221,9 +221,9 @@ def add_timeout_args(parser):
     """Add command-line arguments related to network timeouts."""
 
     settings = {
-        "IP": {"connect": 3, "message": 60, "getaddr": 60},
-        "TOR": {"connect": 30, "message": 60, "getaddr": 120},
-        "I2P": {"connect": 120, "message": 120, "getaddr": 240},
+        "IP": {"connect": 3, "message": 30, "getaddr": 70},
+        "TOR": {"connect": 100, "message": 40, "getaddr": 90},
+        "I2P": {"connect": 30, "message": 80, "getaddr": 170},
     }
 
     helps = {
