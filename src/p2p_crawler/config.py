@@ -246,7 +246,7 @@ def add_general_args(parser):
     parser.add_argument(
         "--num-workers",
         type=int,
-        default=os.environ.get("NUM_WORKERS", 20),
+        default=os.environ.get("NUM_WORKERS", 64),
         help="Number of crawler coroutines",
     )
 
