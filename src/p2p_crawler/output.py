@@ -204,6 +204,9 @@ class Output:
         for path in paths:
             blob_dest = self.result_settings.gcs.location + "/" + path.name + ".bz2"
             blob = bucket.blob(blob_dest)
+            # workaround for a GCS timeout issue when uploading large files
+            # (see https://github.com/googleapis/python-storage/issues/74)
+            blob._chunk_size = 8 * 1024 * 1024  # 8 MB
             xfer_start = time.time()
             blob.upload_from_filename(f"{path}.bz2")
             log.info(
