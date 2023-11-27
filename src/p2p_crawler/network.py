@@ -75,27 +75,19 @@ class Socket:
 
         self.stats["time_connect"] = int((time.time() - time_start) * 1000)
 
-        log.debug(
-            "Opened connection to %s in %dms (proxy: %dms)",
-            addr,
-            self.stats["time_connect"],
-            self.stats["time_connect_proxy"],
-        )
+        log.debug("Opened connection to %s in %dms", addr, self.stats["time_connect"])
 
     async def _connect_ip(self, addr: Address, timeout: int):
         """Connect to IPv4/IPv6 node."""
-        self.stats["time_connect_proxy"] = 0
         fut = asyncio.open_connection(addr.host, addr.port)
         self._reader, self._writer = await asyncio.wait_for(fut, timeout=timeout)
 
     async def _connect_onion(self, addr: Address, timeout: int):
         """Connect to Onion v2/v3 node."""
-        time_start = time.time()
         conf = self.network_settings
         proxy = Proxy.from_url(f"socks5://{conf.tor_proxy_host}:{conf.tor_proxy_port}")
         fut = proxy.connect(dest_host=addr.host, dest_port=addr.port, timeout=timeout)
         sock = await asyncio.wait_for(fut, timeout=timeout)
-        self.stats["time_connect_proxy"] = int((time.time() - time_start) * 1000)
         fut = asyncio.open_connection(sock=sock)
         self._reader, self._writer = await asyncio.wait_for(fut, timeout=timeout)
 
@@ -112,7 +104,6 @@ class Socket:
 
     async def _connect_i2p(self, addr: Address, timeout: int):
         """Connect to I2P node."""
-        self.stats["time_connect_proxy"] = 0
         conf = self.network_settings
         fut = i2plib.stream_connect(
             await self._get_i2p_session_id(),
