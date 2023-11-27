@@ -22,8 +22,7 @@
         p2p-crawler = mkPoetryApplication {
           projectDir = self;
 
-          # use python 3.9 due to breaking api change in asyncio
-          python = pkgs.python39;
+          python = pkgs.python312;
 
           # extra nativeBuildInputs for dependencies
           overrides = defaultPoetryOverrides.extend
