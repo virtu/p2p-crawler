@@ -357,8 +357,14 @@ class AddrMessage:
     addresses: list[Address]
 
     @classmethod
-    def parse(cls, s, version):
-        """Deserialize 'addr' message."""
+    def parse(cls, s):
+        """
+        Deserialize 'addr' message.
+
+        In theory, the node version is required to determine whether address
+        records contain a timestamp or not (version >= 31402), but since nodes
+        that old are no longer around, timestamps are assumed implicitly.
+        """
         try:
             num_addresses = VarInt.decode(s)
         except asyncio.IncompleteReadError:
@@ -367,7 +373,7 @@ class AddrMessage:
 
         addresses = []
         for _ in range(num_addresses):
-            timestamp = int.from_bytes(s.read(4), "little") if version >= 31402 else 0
+            timestamp = int.from_bytes(s.read(4), "little")
             _ = s.read(8)
             ip = IPv6Address(s.read(16))
             ip_str = str(ip.ipv4_mapped) if ip.ipv4_mapped else str(ip)
