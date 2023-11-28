@@ -183,6 +183,7 @@ class CrawlerSettings(ComponentSettings):
     delay_start: int
     num_workers: int
     node_share: float
+    record_addr_stats: bool
     node_settings: NodeSettings
     result_settings: ResultSettings
 
@@ -194,6 +195,7 @@ class CrawlerSettings(ComponentSettings):
             delay_start=args.delay_start,
             num_workers=args.num_workers,
             node_share=args.node_share,
+            record_addr_stats=args.record_addr_stats,
             node_settings=NodeSettings.parse(args),
             result_settings=ResultSettings.parse(args),
         )
@@ -333,6 +335,13 @@ def add_general_args(parser):
             "TIMESTAMP", time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
         ),
         help="Timestamp for results",
+    )
+
+    parser.add_argument(
+        "--record-addr-stats",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Record and store address statistics",
     )
 
     parser.add_argument(

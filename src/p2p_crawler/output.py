@@ -57,9 +57,10 @@ class Output:
     def write_files(self):
         """Persist files to filesystem."""
 
-        self.write_address_statistics()
         self.write_crawler_statistics()
         self.write_reachable_nodes()
+        if self.crawler.settings.record_addr_stats:
+            self.write_address_statistics()
         if self.log_settings.store_debug_log:
             self.compress_debug_log()
 
@@ -194,10 +195,11 @@ class Output:
         bucket = storage_client.bucket(self.result_settings.gcs.bucket)
 
         paths = [
-            self.result_settings.address_stats,
             self.result_settings.reachable_nodes,
             self.result_settings.crawler_stats,
         ]
+        if self.crawler.settings.record_addr_stats:
+            paths.append(self.result_settings.address_stats)
         if self.log_settings.store_debug_log:
             paths.append(self.log_settings.debug_log_path)
 
