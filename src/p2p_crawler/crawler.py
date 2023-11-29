@@ -298,17 +298,20 @@ class Crawler:
         """
         Obtain and process a node's peers.
 
-        Sends 'getaddr' to peer and wait for `addr` replies. Updates address
-        statistics (via `node.update_address_stats()`), then converts addresses
-        to nodes and adds suitable ones to set of pending nodes (via
-        `node.add_node_peers()`)
+        Sends 'getaddr' to peer and wait for `addr` replies. If requested via
+        command-line settings, updates address statistics (via
+        `node.update_address_stats()`), then converts addresses to nodes and
+        adds suitable ones to set of pending nodes (via
+        `node.add_node_peers()`).
         """
 
         addrs = await node.get_peer_addrs()
         if not addrs:
             return
 
-        self.stats.update_address_stats(addrs)
+        if self.settings.record_addr_stats:
+            self.stats.update_address_stats(addrs)
+
         peers = {
             Node(
                 address=addr,
