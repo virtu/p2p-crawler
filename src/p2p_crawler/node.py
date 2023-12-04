@@ -211,6 +211,7 @@ class Node:
         stats = {
             "host": self.address.host,
             "port": self.address.port,
+            "network": self.address.type,
             "seed_distance": self.seed_distance,
         }
 
