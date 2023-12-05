@@ -5,6 +5,15 @@ All notable changes are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2023-12-05
+
+### Changed
+
+  - Log nodes to which a connection could be established but which did not complete the
+    handshake, and introduce `handshake_successful` field in the reachable nodes log to
+    differentiate between nodes that successfully completed the handshake and those that
+    did not.
+
 ## [3.3.0] - 2023-12-04
 
 ### Changed

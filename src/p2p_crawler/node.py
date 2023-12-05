@@ -205,7 +205,6 @@ class Node:
           - receiver_ip and receiver_port: crawler's address
           - sender_services: duplicate of services
           - sender_ip and sender_port: often set to zero, duplicate of address
-          - handshake_successful: always true for reachable nodes
           - nonce: random number
         """
         stats = {
@@ -219,6 +218,7 @@ class Node:
             "handshake_timestamp",
             "time_connect",
             "handshake_attempts",
+            "handshake_successful",
             "handshake_duration",
             "version",
             "services",
@@ -241,5 +241,5 @@ class Node:
             elif stat.startswith("advertised_addrs_"):
                 stats[stat] = self.stats.get(stat, 0)
             else:
-                stats[stat] = self.stats[stat]
+                stats[stat] = self.stats.get(stat, None)
         return stats

@@ -74,7 +74,7 @@ class CrawlerNodeSets:
       - nodes_by_seed: dict with list(!) of nodes from individual dns seeds
         (use list instead of set to detect bugs in DNS requests that might lead
         to duplicate addresses from a DNS seed)
-      - reachable: set of nodes confirmed reachable via completed handshake
+      - reachable: set of nodes confirmed reachable via established connection
       - unreachable: set of nodes confirmed unreachable
       - pending: set of nodes currently pending processing (current seed distance)
       - next: set of nodes pending processing once current seed distance is done
@@ -173,15 +173,17 @@ class CrawlerNodeSets:
         self.unreachable.add(node)
 
     @timing
-    def retry_or_set_unreachable(self, node):
+    def retry_or_give_up(self, node):
         """If node has retries left, decrement handshake retry counter and
         reinsert node into pending node set so it can be retried later. If
-        retries have been used up, mark node as unreachable."""
+        retries have been used up, give up (i.e., don't attempt another
+        handshake; however, mark node as reachable because a connection could
+        be established)."""
         if node.has_handshake_attempts_left():
             self.processing.remove(node)
             self.pending.add(node)
         else:
-            self.set_unreachable(node)
+            self.set_reachable(node)
 
     @timing
     def add_node_peers(self, node, adv_nodes):
@@ -284,7 +286,7 @@ class Crawler:
             success = await node.handshake()
             if not success:
                 await node.disconnect()
-                self.nodes.retry_or_set_unreachable(node)
+                self.nodes.retry_or_give_up(node)
                 continue
 
             if random.random() < self.settings.node_share:
