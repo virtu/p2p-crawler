@@ -20,7 +20,7 @@
     {
       packages = {
         p2p-crawler = mkPoetryApplication {
-          projectDir = self;
+          projectDir = ./.;
 
           # use python 3.9 due to breaking api change in asyncio
           python = pkgs.python39;
