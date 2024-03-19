@@ -134,6 +134,7 @@ class CrawlerNodeSets:
                 "No pending nodes but %d other crawler(s) still active: waiting 5s...",
                 len(self.processing),
             )
+            log.debug("Processing: %s", self.processing)
             await asyncio.sleep(5)
             if self.pending:
                 return True
