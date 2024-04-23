@@ -119,7 +119,7 @@ class ResultSettings(ComponentSettings):
     path: Path
     reachable_nodes: Path
     crawler_stats: Path
-    address_stats: Path
+    addr_data: Path
     gcs: GCSSettings
 
     @classmethod
@@ -130,7 +130,7 @@ class ResultSettings(ComponentSettings):
             path=Path(args.result_path),
             reachable_nodes=Path(f"{prefix}_reachable_nodes.csv"),
             crawler_stats=Path(f"{prefix}_crawler_stats.json"),
-            address_stats=Path(f"{prefix}_address_stats.json"),
+            addr_data=Path(f"{prefix}_addr_data.dat"),
             gcs=GCSSettings.parse(args),
         )
 
@@ -183,7 +183,7 @@ class CrawlerSettings(ComponentSettings):
     delay_start: int
     num_workers: int
     node_share: float
-    record_addr_stats: bool
+    record_addr_data: bool
     node_settings: NodeSettings
     result_settings: ResultSettings
 
@@ -195,7 +195,7 @@ class CrawlerSettings(ComponentSettings):
             delay_start=args.delay_start,
             num_workers=args.num_workers,
             node_share=args.node_share,
-            record_addr_stats=args.record_addr_stats,
+            record_addr_data=args.record_addr_data,
             node_settings=NodeSettings.parse(args),
             result_settings=ResultSettings.parse(args),
         )
@@ -338,10 +338,10 @@ def add_general_args(parser):
     )
 
     parser.add_argument(
-        "--record-addr-stats",
+        "--record-addr-data",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Record and store address statistics",
+        help="Record addr data received on a per-peer basis",
     )
 
     parser.add_argument(

@@ -408,7 +408,8 @@ class AddrV2Message:
             return socket.inet_ntop(socket.AF_INET, addr_data)
 
         if addr_type == "ipv6":
-            return socket.inet_ntop(socket.AF_INET6, addr_data)
+            ip = IPv6Address(addr_data)
+            return str(ip.ipv4_mapped) if ip.ipv4_mapped else str(ip)
 
         if addr_type == "torv2":
             permanent_id = addr_data

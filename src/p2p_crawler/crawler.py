@@ -34,37 +34,6 @@ class CrawlerStatistics:
     runtime: int = field(init=False)
     address_stats: dict[Address, AddressStats] = field(default_factory=dict)
 
-    @timing
-    def update_address_stats(self, addrs):
-        """
-        Update address statistics.
-
-        For each address received in an `addr` message, log the timestamp when
-        the `addr` message was received and when the peer that sent the message
-        was last connected to the advertised address.
-        """
-
-        now = int(time.time())
-        num_added = 0
-        num_updated = 0
-        for addr in addrs:
-            timestamp = addr.timestamp
-            age = now - timestamp
-            if addr not in self.address_stats:
-                self.address_stats[addr] = AddressStats([age], [timestamp])
-                num_added += 1
-            else:
-                stat = self.address_stats[addr]
-                stat.ages.append(age)
-                stat.timestamps.append(timestamp)
-                num_updated += 1
-        log.info(
-            "Updated address statistics: (total=%d, new=%d, updated=%d)",
-            len(self.address_stats),
-            num_added,
-            num_updated,
-        )
-
 
 @dataclass
 class CrawlerNodeSets:
@@ -83,7 +52,6 @@ class CrawlerNodeSets:
         in any of the pending or labeled sets; also used in code for switching
         between pending and next node sets)
       - address_stats: dict with Address keys and AddressStats values
-
     """
 
     nodes_by_seed: dict[str, list[Node]] = field(default_factory=dict)
@@ -297,23 +265,81 @@ class Crawler:
             self.nodes.set_reachable(node)
 
     @timing
+    def _write_addr_data(self, node: Node, addrs: list[Address]):
+        """
+        Record hashes of addresses provided by each node.
+
+        Data is written using a custom format to preserve space.
+        The header is a magic string followed by a version byte, a 4-byte epoch
+        timestamp (used to reconstruct address seen_by timestamps) and a newline.
+
+        Node records consist of the length of the node string as varint followed by the node string.
+        The addr data for each node record consists of the number of address
+        records encoded as varint, followed by address record. Each address
+        record consists of a varint that holds the address id shifted by three
+        bits to the left and ANDed with the network_id, as well as
+        a zigzag+varint-encoded timestamp delta.
+
+        All text is encoded using ascii; numbers are encoded using big endian.
+        When the crawler finishes running, 'EOF' is inserted at the end of the
+        file.
+        """
+
+        def to_varint(value: int) -> bytes:
+            """Encode an integer as varint."""
+            buf = bytearray()
+            while value > 0x7F:
+                buf.append((value & 0x7F) | 0x80)
+                value >>= 7
+            buf.append(value)
+            return buf
+
+        with open(self.settings.result_settings.addr_data, "ab") as f:
+            data = b""
+            # header
+            if f.tell() == 0:
+                magic = "p2p-addr-data".encode("ascii")
+                version = 1
+                epoch = Address._epoch
+                data += magic
+                data += version.to_bytes(1, "big")
+                data += epoch.to_bytes(4, "big")
+                data += "\n".encode("ascii")
+
+            # node that sent the addr reply
+            data += to_varint(len(str(node.address)))
+            data += str(node.address).encode("ascii")
+
+            # number of records, followed by records
+            data += to_varint(len(addrs))
+            for addr in addrs:
+                addr_id, addr_timestamp_delta_zigzag, net_id = addr.compress()
+                addr_net_id = (addr_id << 3) | net_id
+                data += to_varint(addr_net_id)
+                data += to_varint(addr_timestamp_delta_zigzag)
+            data += "\n".encode("ascii")
+            f.write(data)
+
+    @timing
     async def _get_and_process_peers(self, node):
         """
         Obtain and process a node's peers.
 
-        Sends 'getaddr' to peer and wait for `addr` replies. If requested via
-        command-line settings, updates address statistics (via
-        `node.update_address_stats()`), then converts addresses to nodes and
-        adds suitable ones to set of pending nodes (via
-        `node.add_node_peers()`).
+        Sends 'getaddr' to peer and wait for `addr` replies. Converts addresses
+        from 'addr' messages to `Node`s and adds suitable ones to set of
+        pending nodes (via `node.add_node_peers()`).
+
+        Optional:
+        - If `--record-addr-data` is set, write addr data provided by each node
+          into a (compressed) file.
         """
 
         addrs = await node.get_peer_addrs()
         if not addrs:
             return
 
-        if self.settings.record_addr_stats:
-            self.stats.update_address_stats(addrs)
+        if self.settings.record_addr_data:
+            self._write_addr_data(node, addrs)
 
         peers = {
             Node(

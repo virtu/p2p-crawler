@@ -36,7 +36,7 @@
       };
 
       devShells.default = pkgs.mkShell {
-        packages = [ pkgs.poetry ];
+        packages = [ pkgs.poetry pkgs.python39 ];
       };
     });
 }

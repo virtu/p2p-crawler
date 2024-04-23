@@ -4,6 +4,7 @@ import bz2
 import csv
 import json
 import logging as log
+import lzma
 import os
 import sys
 import time
@@ -24,6 +25,28 @@ class Output:
     result_settings: ResultSettings
     log_settings: LogSettings
     crawler: Crawler
+
+    @staticmethod
+    def lzma_compress_file(path_in: Path, delete_input: bool = True):
+        """Compress file using LZMA."""
+
+        time_start = time.time()
+        path_out = Path(f"{path_in}.xz")
+        with path_in.open("rb") as f_in:
+            with lzma.open(path_out, "wb") as f_out:
+                f_out.writelines(f_in)
+        runtime = time.time() - time_start
+        log.info(
+            "Wrote %s (size=%.1fkB, uncompressed=%.1fkB, ratio=%.1f, runtime=%.1fs)",
+            path_out,
+            path_out.stat().st_size / 1024,
+            path_in.stat().st_size / 1024,
+            path_in.stat().st_size / path_out.stat().st_size,
+            runtime,
+        )
+        if delete_input:
+            os.remove(path_in)
+            log.debug("Removed uncompressed input file %s", path_in)
 
     @staticmethod
     def dict_to_bz2(path: Path, data: dict):
@@ -59,23 +82,18 @@ class Output:
 
         self.write_crawler_statistics()
         self.write_reachable_nodes()
-        if self.crawler.settings.record_addr_stats:
-            self.write_address_statistics()
+        if self.crawler.settings.record_addr_data:
+            self.write_addr_data_eof()
+            Output.lzma_compress_file(self.result_settings.addr_data)
         if self.log_settings.store_debug_log:
             self.compress_debug_log()
 
-    def write_address_statistics(self):
-        """
-        Write address statistics.
+    def write_addr_data_eof(self):
+        """Write 'EOF' to addr data file."""
 
-        Convert dict's keys of type Address to string, and its values of type
-        AddressStats (dataclass) to dict.
-        """
-
-        dest = Path(f"{self.result_settings.address_stats}.bz2")
-        address_stats = self.crawler.stats.address_stats
-        json_compatible_dict = {str(k): v.to_dict() for k, v in address_stats.items()}
-        Output.dict_to_bz2(dest, json_compatible_dict)
+        eof = "EOF".encode("ascii")
+        with open(self.result_settings.addr_data, "ab") as f:
+            f.write(eof)
 
     def write_crawler_statistics(self):
         """
@@ -194,23 +212,26 @@ class Output:
         )
         bucket = storage_client.bucket(self.result_settings.gcs.bucket)
 
+        def add_suffix(path: Path, suffix: str) -> Path:
+            return path.with_suffix(path.suffix + suffix)
+
         paths = [
-            self.result_settings.reachable_nodes,
-            self.result_settings.crawler_stats,
+            add_suffix(self.result_settings.reachable_nodes, ".bz2"),
+            add_suffix(self.result_settings.crawler_stats, ".bz2"),
         ]
-        if self.crawler.settings.record_addr_stats:
-            paths.append(self.result_settings.address_stats)
+        if self.crawler.settings.record_addr_data:
+            paths.append(add_suffix(self.result_settings.addr_data, ".xz"))
         if self.log_settings.store_debug_log:
-            paths.append(self.log_settings.debug_log_path)
+            paths.append(add_suffix(self.log_settings.debug_log_path, ".bz2"))
 
         for path in paths:
-            blob_dest = self.result_settings.gcs.location + "/" + path.name + ".bz2"
+            blob_dest = self.result_settings.gcs.location + "/" + path.name
             blob = bucket.blob(blob_dest)
             # workaround for a GCS timeout issue when uploading large files
             # (see https://github.com/googleapis/python-storage/issues/74)
             blob._chunk_size = 8 * 1024 * 1024  # 8 MB
             xfer_start = time.time()
-            blob.upload_from_filename(f"{path}.bz2")
+            blob.upload_from_filename(path)
             log.info(
                 "Uploaded %s to gs://%s/%s in %dms",
                 path,

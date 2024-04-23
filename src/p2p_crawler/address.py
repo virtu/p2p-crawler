@@ -1,10 +1,11 @@
 """This module contains the 'Address' and 'Socket' classes that handle network connections."""
-
 import logging as log
 import time
 from dataclasses import dataclass
 from functools import cached_property
-from typing import ClassVar
+from typing import ClassVar, Tuple
+
+import mmh3
 
 DEFAULT_MAINNET_PORT = 8333
 TOR_V2_ADDR_LEN = 16 + len(".onion")
@@ -28,6 +29,10 @@ class Address:
         "i2p",
         "cjdns",
     ]
+    # used by compress()
+    _next_id: ClassVar[int] = 0
+    _hash_to_id: ClassVar[dict] = {}
+    _epoch: ClassVar[int] = int(time.time())
 
     def __eq__(self, other):
         """Ignore timestamp for equality check"""
@@ -84,3 +89,32 @@ class Address:
     def is_cjdns(self) -> bool:
         """Determine if address is a CJDNS address."""
         return self.type == "cjdns"
+
+    def compress(self) -> Tuple[int, int, int]:
+        """
+        Compress Address class information for serialization.
+
+        Addresses (host+port) are first hashed to 32-bit signed integers using
+        MurmurHash3. To reduce size further, hashes are mapped onto integers,
+        starting from zero. The rationale for mapping the hashes onto small
+        integers is that the data is serialized to a varint.
+
+        Address last_seen timestamps are mapped onto smaller integers by
+        subtracting them from epoch (at the time the crawler is run), then
+        zigzag-encoded so they can be stored as varint.
+
+        Network types are converted to integers.
+        """
+        addr_str = str(self)
+        addr_hash = mmh3.hash(addr_str)
+        if addr_hash not in self._hash_to_id:
+            Address._hash_to_id[addr_hash] = Address._next_id
+            Address._next_id += 1
+        addr_id = Address._hash_to_id[addr_hash]
+
+        delta = self._epoch - self.timestamp
+        delta_zigzag = (delta << 1) ^ (delta >> 31)
+
+        net_id = self.supported_types.index(self.type)
+
+        return addr_id, delta_zigzag, net_id
