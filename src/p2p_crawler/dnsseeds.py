@@ -16,6 +16,7 @@ DNS_SEEDS = [
     "seed.bitcoin.sprovoost.nl",
     "dnsseed.emzy.de",
     "seed.bitcoin.wiz.biz",
+    "dnsseed.mainnet.bitcoin.achow101.com",
 ]
 
 
