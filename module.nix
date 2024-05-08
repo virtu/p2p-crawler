@@ -99,7 +99,7 @@ in
 
       store-debug-log = mkEnableOption "storing the debug log" // { default = true; };
 
-      record-addr-stats = mkEnableOption "collecting and storing address statistics";
+      record-addr-data = mkEnableOption "collecting and storing addr data on a per-node basis";
 
       gcs = {
         enable = mkEnableOption "storing to GCS";
@@ -238,7 +238,7 @@ in
           --log-level ${cfg.log-level} \
           --result-path ${cfg.result-path} \
           ${if cfg.store-debug-log then "--store-debug-log" else "--no-store-debug-log"} \
-          ${if cfg.record-addr-stats then "--record-addr-stats" else "--no-record-addr-stats"} \
+          ${if cfg.record-addr-data then "--record-addr-data" else "--no-record-addr-data"} \
           ${if cfg.gcs.enable
 then "--store-to-gcs ${optionalString (cfg.gcs.bucket != null) "--gcs-bucket ${cfg.gcs.bucket}"} ${optionalString (cfg.gcs.location != null) "--gcs-location ${cfg.gcs.location}"} ${optionalString (cfg.gcs.credentials != null) "--gcs-credentials ${cfg.gcs.credentials}"}"
 else "--no-store-to-gcs"} \

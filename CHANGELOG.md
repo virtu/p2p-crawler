@@ -5,6 +5,16 @@ All notable changes are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - 2024-05-06
+
+### Changed
+
+  - Add support to log addresses received in `addr` messages on a per-peer basis. This
+    new feature is enabled via the `--record-addr-data` command-line argument.
+  - Obsolete the `--record-addr-stats` option to collect timestamps for all advertised
+    addresses since this data can be extracted from the data collected using the newly
+    introduced `--record-addr-data` option.
+
 ## [3.4.0] - 2023-12-05
 
 ### Changed
