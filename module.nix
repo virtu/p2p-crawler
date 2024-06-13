@@ -124,69 +124,86 @@ in
       };
 
       timeout = {
-        ip =
-          {
-            connect = mkOption {
-              type = types.int;
-              default = 3;
-              example = 10;
-              description = mdDoc "Timeout for establishing connections via IPv4 and IPv6.";
-            };
-            message = mkOption {
-              type = types.int;
-              default = 30;
-              example = 10;
-              description = mdDoc "Timeout for replies from peer via IPv4 and IPv6.";
-            };
-            getaddr = mkOption {
-              type = types.int;
-              default = 70;
-              example = 10;
-              description = mdDoc "Max. duration for receiving addr messages via IPv4 and IPv6.";
-            };
+        ip = {
+          connect = mkOption {
+            type = types.int;
+            default = 3;
+            example = 10;
+            description = mdDoc "Timeout for establishing connections via IPv4 and IPv6.";
           };
-        tor =
-          {
-            connect = mkOption {
-              type = types.int;
-              default = 100;
-              example = 10;
-              description = mdDoc "Timeout for establishing connections via TOR.";
-            };
-            message = mkOption {
-              type = types.int;
-              default = 40;
-              example = 10;
-              description = mdDoc "Timeout for replies from peer via TOR.";
-            };
-            getaddr = mkOption {
-              type = types.int;
-              default = 90;
-              example = 10;
-              description = mdDoc "Max. duration for receiving addr messages via TOR.";
-            };
+          message = mkOption {
+            type = types.int;
+            default = 30;
+            example = 10;
+            description = mdDoc "Timeout for replies from peer via IPv4 and IPv6.";
           };
-        i2p =
-          {
-            connect = mkOption {
-              type = types.int;
-              default = 30;
-              example = 10;
-              description = mdDoc "Timeout for establishing connections via I2P.";
-            };
-            message = mkOption {
-              type = types.int;
-              default = 80;
-              example = 10;
-              description = mdDoc "Timeout for replies from peer via I2P.";
-            };
-            getaddr = mkOption {
-              type = types.int;
-              default = 170;
-              example = 10;
-              description = mdDoc "Max. duration for receiving addr messages via I2P.";
-            };
+          getaddr = mkOption {
+            type = types.int;
+            default = 70;
+            example = 10;
+            description = mdDoc "Max. duration for receiving addr messages via IPv4 and IPv6.";
           };
+        };
+        tor = {
+          connect = mkOption {
+            type = types.int;
+            default = 120;
+            example = 10;
+            description = mdDoc "Timeout for establishing connections via TOR.";
+          };
+          message = mkOption {
+            type = types.int;
+            default = 40;
+            example = 10;
+            description = mdDoc "Timeout for replies from peer via TOR.";
+          };
+          getaddr = mkOption {
+            type = types.int;
+            default = 90;
+            example = 10;
+            description = mdDoc "Max. duration for receiving addr messages via TOR.";
+          };
+        };
+        i2p = {
+          connect = mkOption {
+            type = types.int;
+            default = 30;
+            example = 10;
+            description = mdDoc "Timeout for establishing connections via I2P.";
+          };
+          message = mkOption {
+            type = types.int;
+            default = 80;
+            example = 10;
+            description = mdDoc "Timeout for replies from peer via I2P.";
+          };
+          getaddr = mkOption {
+            type = types.int;
+            default = 170;
+            example = 10;
+            description = mdDoc "Max. duration for receiving addr messages via I2P.";
+          };
+        };
+        cjdns = {
+          connect = mkOption {
+            type = types.int;
+            default = 10;
+            example = 10;
+            description = mdDoc "Timeout for establishing connections via CJDNS.";
+          };
+          message = mkOption {
+            type = types.int;
+            default = 30;
+            example = 10;
+            description = mdDoc "Timeout for replies from peer via CJDNS.";
+          };
+          getaddr = mkOption {
+            type = types.int;
+            default = 70;
+            example = 10;
+            description = mdDoc "Max. duration for receiving addr messages via CJDNS.";
+          };
+        };
       };
     };
   };
