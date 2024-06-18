@@ -5,6 +5,13 @@ All notable changes are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 3.7.1 - 2024-06-19
+
+- Refactor Node class to switch from passing static `NodeSettings` via the constructor
+  to using a class variable and method to initialize the settings once. This avoids
+  unnecessary piggybacking the settings throughout the code. Among other things, this
+  allows for some simplifications in the newly introduced `History` class.
+
 ## 3.7.0 - 2024-06-18
 
 - Support caching previously discovered node across runs and re-trying them in successive

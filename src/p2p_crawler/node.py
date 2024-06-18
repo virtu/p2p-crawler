@@ -7,6 +7,7 @@ import logging as log
 import time
 from dataclasses import asdict, dataclass, field
 from functools import cached_property
+from typing import ClassVar
 
 from .config import NodeSettings, TimeoutSettings
 from .decorators import timing
@@ -20,9 +21,21 @@ class Node:
     """Class representing Bitcoin nodes."""
 
     address: Address
-    settings: NodeSettings = field(repr=False)
     seed_distance: int = 0
     stats: dict[str, str | int | bool] = field(default_factory=dict)
+
+    # class variable, used for static settings set via command-line
+    settings: ClassVar[NodeSettings]
+
+    @staticmethod
+    def configure(settings: NodeSettings):
+        """Configure node settings."""
+        Node.settings = settings
+
+    def __post_init__(self):
+        """Ensure `configure` has been called."""
+        if not hasattr(self, "settings"):
+            raise RuntimeError("Node class not initialized via configure()")
 
     @cached_property
     def _socket(self) -> Socket:

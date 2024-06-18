@@ -4,11 +4,10 @@ import bz2
 import json
 import logging as log
 from collections import defaultdict
-from dataclasses import dataclass, field
-from pathlib import Path
+from dataclasses import dataclass
 
 from .address import Address
-from .config import CrawlerSettings
+from .config import HistorySettings
 from .node import Node
 
 
@@ -18,20 +17,19 @@ class History:
     Class for handling reachable node data from previous runs.
 
     Uses bz2-compressed JSON format, with `_metadata` as key for a metadata
-    dict (featuring `last_run` and `version`) and `reachable_nodes` as key for
-    a node dict (with node addresses as keys to dicts containing `network_type`
-    and `retries_left`).
+    dict (featuring `last_run`, `version`, and `stats`) as well as
+    `reachable_nodes` as key for a node dict (with node addresses as keys to
+    dicts containing `network_type` and `retries_left`).
     """
 
-    settings: CrawlerSettings
-    history_path: Path = field(init=False)
+    settings: HistorySettings
+    version: str
+    timestamp: str
 
     def __post_init__(self):
         """Read data from the reachable nodes history JSON file."""
-        self.history_settings = self.settings.result_settings.history_settings
-        self.history_path = Path(f"{self.history_settings.path}.bz2")
         try:
-            with bz2.open(self.history_path, "rt") as file:
+            with bz2.open(self.settings.path, "rt") as file:
                 self.data = json.load(file)
                 log.debug(
                     "Read reachable nodes history (last_run=%s, version=%s)",
@@ -39,7 +37,7 @@ class History:
                     self.data["_metadata"]["version"],
                 )
         except FileNotFoundError:
-            log.warning("History file %s not found.", self.history_path)
+            log.warning("History file %s not found.", self.settings.path)
             self.data = {"_metadata": {"stats": []}, "reachable_nodes": {}}
 
     def get_reachable_nodes(self) -> set[Node]:
@@ -51,7 +49,6 @@ class History:
         reachable_nodes_history = set(
             Node(
                 address=Address.from_str(addr),
-                settings=self.settings.node_settings,
                 seed_distance=100,
             )
             for addr in self.data["reachable_nodes"]
@@ -72,7 +69,6 @@ class History:
         """
 
         reachable_nodes_history = self.get_reachable_nodes()
-        max_retries = self.history_settings.max_retries
 
         # add reachable nodes not seen previously to history
         new_nodes = reachable_nodes_now - reachable_nodes_history
@@ -80,7 +76,7 @@ class History:
             address = str(new_node.address)
             self.data["reachable_nodes"][address] = {
                 "network_type": new_node.address.type,
-                "retries_left": max_retries,
+                "retries_left": self.settings.max_retries,
             }
 
         # decrement retries for previously seen historical nodes that were unreachable during this run
@@ -97,32 +93,33 @@ class History:
         nodes_to_reset = reachable_nodes_history - unreachable_nodes
         for node_to_reset in nodes_to_reset:
             address = str(node_to_reset.address)
-            self.data["reachable_nodes"][address]["retries_left"] = max_retries
+            self.data["reachable_nodes"][address][
+                "retries_left"
+            ] = self.settings.max_retries
 
         # update metadata
-        self.data["_metadata"]["last_run"] = self.settings.result_settings.timestamp
-        self.data["_metadata"]["version"] = self.settings.version_info.version
+        self.data["_metadata"]["last_run"] = self.timestamp
+        self.data["_metadata"]["version"] = self.version
         num_net_type = defaultdict(int)
         for addr_stats in self.data["reachable_nodes"].values():
             net_type = addr_stats["network_type"]
             num_net_type[net_type] += 1
         num_net_type_ordered = dict(sorted(num_net_type.items()))
-        stats = {self.settings.result_settings.timestamp: num_net_type_ordered}
-        self.data["_metadata"]["stats"].append(stats)
+        self.data["_metadata"]["stats"].append({self.timestamp: num_net_type_ordered})
 
         # persist and output stats
-        with bz2.open(self.history_path, "wt") as file:
+        with bz2.open(self.settings.path, "wt") as file:
             json.dump(self.data, file, indent=4, sort_keys=True)
         log.info(
             "Updated reachable nodes history (added=%d "
             "[ipv4=%d, ipv6=%d, onion=%d, i2p=%d, cjdns=%d], "
             "retries_reset=%d, retries_decr=%d, removed=%d, old_hist_size=%d, new_hist_size=%d)",
             len(new_nodes),
-            num_net_type["ipv4"],
-            num_net_type["ipv6"],
-            num_net_type["onion_v2"] + num_net_type["onion_v3"],
-            num_net_type["i2p"],
-            num_net_type["cjdns"],
+            len([n for n in new_nodes if n.address.type == "ipv4"]),
+            len([n for n in new_nodes if n.address.type == "ipv6"]),
+            len([n for n in new_nodes if n.address.type in ["onion_v2", "onion_v3"]]),
+            len([n for n in new_nodes if n.address.type == "i2p"]),
+            len([n for n in new_nodes if n.address.type == "cjdns"]),
             len(nodes_to_reset),
             len(unreachable_nodes),
             num_removed,

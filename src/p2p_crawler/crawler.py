@@ -62,7 +62,7 @@ class CrawlerNodeSets:
     next: set[Node] = field(default_factory=set)
     processing: set[Node] = field(default_factory=set)
 
-    def init(self, addrs_by_seed: dict[str, list[Address]], settings: NodeSettings):
+    def init(self, addrs_by_seed: dict[str, list[Address]]):
         """
         Initialize crawler node sets with addresses from DNS seeds.
 
@@ -71,7 +71,7 @@ class CrawlerNodeSets:
         set of pending nodes (`pending`).
         """
         for seed, addrs in addrs_by_seed.items():
-            nodes = [Node(addr, settings, seed_distance=0) for addr in addrs]
+            nodes = [Node(addr, seed_distance=0) for addr in addrs]
             self.nodes_by_seed[seed] = nodes
             self.pending |= set(nodes)
         log.debug(
@@ -216,15 +216,20 @@ class Crawler:
             log.info("Delaying start for %d seconds...", delay)
             time.sleep(delay)
 
+        Node.configure(self.settings.node_settings)
         addrs_by_seed = get_addresses_from_dns_seeds()
-        self.nodes.init(addrs_by_seed, self.settings.node_settings)
+        self.nodes.init(addrs_by_seed)
 
         tasks = [self.crawler() for _ in range(self.settings.num_workers)]
         tasks.append(self.monitor())
         await asyncio.gather(*tasks)
 
         if self.settings.result_settings.history_settings.enable:
-            history = History(self.settings)
+            history = History(
+                settings=self.settings.result_settings.history_settings,
+                version=self.settings.version_info.version,
+                timestamp=self.settings.result_settings.timestamp,
+            )
             historical_nodes = history.get_reachable_nodes()
             historical_reached = historical_nodes & self.nodes.reachable
             historical_not_reached = historical_nodes & self.nodes.unreachable
@@ -370,7 +375,6 @@ class Crawler:
         peers = {
             Node(
                 address=addr,
-                settings=self.settings.node_settings,
                 seed_distance=node.seed_distance + 1,
             )
             for addr in addrs
