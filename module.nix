@@ -76,6 +76,15 @@ in
         description = mdDoc "Seconds to wait before starting the crawler.";
       };
 
+      reachable-node-history = mkEnableOption "retaining and retrying reachable nodes from previous runs" // { default = true; };
+
+      reachable-node-history-max-retries = mkOption {
+        type = types.int;
+        default = 3;
+        example = 10;
+        description = mdDoc "Maximum number of runs to retain reachable nodes if they're not reachable.";
+      };
+
       getaddr-attempts = mkOption {
         type = types.int;
         default = 2;
@@ -252,6 +261,8 @@ in
           --delay-start ${toString cfg.delay-start} \
           --num-workers ${toString cfg.workers} \
           --getaddr-attempts ${toString cfg.getaddr-attempts} \
+          ${if cfg.reachable-node-history then "--reachable-node-history" else "--no-reachable-node-history"} \
+          --reachable-node-history-max-retries ${toString cfg.reachable-node-history-max-retries} \
           --log-level ${cfg.log-level} \
           --result-path ${cfg.result-path} \
           ${if cfg.store-debug-log then "--store-debug-log" else "--no-store-debug-log"} \

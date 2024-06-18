@@ -118,12 +118,32 @@ class GCSSettings(ComponentSettings):
 
 
 @dataclass
+class HistorySettings(ComponentSettings):
+    """Configuration for History."""
+
+    enable: bool
+    max_retries: int
+    path: Path
+
+    @classmethod
+    def parse(cls, args):
+        """Create class instance from arguments."""
+        return cls(
+            enable=args.reachable_node_history,
+            max_retries=args.reachable_node_history_max_retries,
+            path=Path(f"{args.result_path}/reachabe_nodes_history.json"),
+        )
+
+
+@dataclass
 class ResultSettings(ComponentSettings):
     """Paths for output files."""
 
     path: Path
+    timestamp: str
     reachable_nodes: Path
     crawler_stats: Path
+    history_settings: HistorySettings
     addr_data: Path
     gcs: GCSSettings
 
@@ -133,8 +153,10 @@ class ResultSettings(ComponentSettings):
         prefix = f"{args.result_path}/{args.timestamp + '_v' + __version__}"
         return cls(
             path=Path(args.result_path),
+            timestamp=args.timestamp,
             reachable_nodes=Path(f"{prefix}_reachable_nodes.csv"),
             crawler_stats=Path(f"{prefix}_crawler_stats.json"),
+            history_settings=HistorySettings.parse(args),
             addr_data=Path(f"{prefix}_addr_data.dat"),
             gcs=GCSSettings.parse(args),
         )
@@ -326,6 +348,21 @@ def add_general_args(parser):
         type=Path,
         default=os.environ.get("RESULT_PATH", "results"),
         help="Directory for results",
+    )
+
+    parser.add_argument(
+        "--reachable-node-history",
+        type=Path,
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Retain and retry reachable nodes from previous runs",
+    )
+
+    parser.add_argument(
+        "--reachable-node-history-max-retries",
+        type=int,
+        default=3,
+        help="Maximum number of runs to retain reachable nodes if they're not reachable.",
     )
 
     parser.add_argument(

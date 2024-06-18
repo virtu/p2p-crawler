@@ -50,6 +50,15 @@ class Address:
         host = f"[{self.host}]" if ":" in self.host else self.host
         return f"{host}:{self.port}"
 
+    @classmethod
+    def from_str(cls, addr_str: str) -> "Address":
+        """Create Address object from string."""
+        if addr_str.startswith("[") and "]" in addr_str:
+            host, port = addr_str[1:].split("]:")
+        else:
+            host, port = addr_str.split(":")
+        return cls(host, int(port))
+
     @cached_property
     def type(self) -> str:  # pylint: disable=too-many-return-statements
         """Determine network type only when required."""

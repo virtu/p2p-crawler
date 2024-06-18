@@ -5,7 +5,16 @@ All notable changes are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 3.6.0 - 2024.06-17
+## 3.7.0 - 2024-06-18
+
+- Support caching previously discovered node across runs and re-trying them in successive
+  runs if they were not discovered during the run. (This approach is necessary to
+  generate consistent results for CJDNS nodes: since there are very few of those nodes,
+  and since most of them are connected via other network types as well, CJDNS nodes
+  mostly only advertise one other CJDNS node, leading to poor dissemination CJDNS node
+  addresses.)
+
+## 3.6.0 - 2024-06-17
 
 - Add support for CJDNS. Timeouts can be set via the
   `--cjdns-{connect,message,getaddr}-timeout` command line arguments
