@@ -20,7 +20,7 @@ class Node:
     """Class representing Bitcoin nodes."""
 
     address: Address
-    settings: NodeSettings
+    settings: NodeSettings = field(repr=False)
     seed_distance: int = 0
     stats: dict[str, str | int | bool] = field(default_factory=dict)
 
@@ -38,7 +38,9 @@ class Node:
             return self.settings.timeouts["tor"]
         if self.address.is_i2p:
             return self.settings.timeouts["i2p"]
-        raise NotImplementedError("Unknown address type")
+        if self.address.is_cjdns:
+            return self.settings.timeouts["cjdns"]
+        raise NotImplementedError("timeouts: unknown address type")
 
     def __str__(self):
         """Format node as string."""

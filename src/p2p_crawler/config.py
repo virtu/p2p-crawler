@@ -70,6 +70,11 @@ class TimeoutSettings(ComponentSettings):
                 message=args.i2p_message_timeout,
                 getaddr=args.i2p_getaddr_timeout,
             ),
+            "cjdns": cls(
+                connect=args.cjdns_connect_timeout,
+                message=args.cjdns_message_timeout,
+                getaddr=args.cjdns_getaddr_timeout,
+            ),
         }
 
 
@@ -226,6 +231,7 @@ def add_timeout_args(parser):
         "IP": {"connect": 3, "message": 30, "getaddr": 70},
         "TOR": {"connect": 100, "message": 40, "getaddr": 90},
         "I2P": {"connect": 30, "message": 80, "getaddr": 170},
+        "CJDNS": {"connect": 10, "message": 30, "getaddr": 70},
     }
 
     helps = {

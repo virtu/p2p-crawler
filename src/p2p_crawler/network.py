@@ -69,7 +69,7 @@ class Socket:
         elif addr.is_i2p:
             await self._connect_i2p(addr, timeout)
         elif addr.is_cjdns:
-            raise NotImplementedError(f"cjdns currently unsupported: {addr}")
+            await self._connect_ip(addr, timeout)
         else:
             raise NotImplementedError(f"unsupported address type: {addr}")
 
@@ -78,7 +78,7 @@ class Socket:
         log.debug("Opened connection to %s in %dms", addr, self.stats["time_connect"])
 
     async def _connect_ip(self, addr: Address, timeout: int):
-        """Connect to IPv4/IPv6 node."""
+        """Connect to an IPv4 or IPv6 (including CJDNS) node."""
         fut = asyncio.open_connection(addr.host, addr.port)
         self._reader, self._writer = await asyncio.wait_for(fut, timeout=timeout)
 

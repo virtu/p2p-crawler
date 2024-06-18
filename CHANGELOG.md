@@ -5,6 +5,15 @@ All notable changes are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 3.6.0 - 2024.06-17
+
+- Add support for CJDNS. Timeouts can be set via the
+  `--cjdns-{connect,message,getaddr}-timeout` command line arguments
+- Increase age threshold for advertised nodes from one to two days to account for
+  addrman cache lifetime of around one day
+- Remove `CrawlerSettings` from the (`repr()`-based) string representation of `Node` the
+  node class
+
 ## [3.5.0] - 2024-05-06
 
 ### Changed

@@ -433,7 +433,6 @@ class AddrV2Message:
 
         if addr_type == "cjdns":
             addr = socket.inet_ntop(socket.AF_INET6, addr_data)
-            log.warning("CJDNS addresses currently unsupported: %s", addr)
             return addr
 
         raise ValueError("decode_address(): unsupported address type")

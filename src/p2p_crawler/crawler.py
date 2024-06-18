@@ -159,14 +159,14 @@ class CrawlerNodeSets:
         """
         Add nodes advertised (`adv_nodes`) by `node` to the set of nodes.
 
-        Determines previously unseed nodes (`new_nodes`) by removing known
+        Determines previously unseen nodes (`new_nodes`) by removing known
         nodes from advertised nodes (`adv_nodes`). Applies a threshold to all
         previously unseen nodes to filter out stale (thus likely unreachable)
-        nodes. Inserts unseed fresh nodes into set of pending nodes for next
+        nodes. Inserts unseen fresh nodes into set of pending nodes for next
         DNS seed distance (`next`).
         """
 
-        threshold = int(time.time()) - (24 * 60 * 60)
+        threshold = int(time.time()) - (2 * 24 * 60 * 60)
         known_nodes = (
             self.reachable
             | self.unreachable
