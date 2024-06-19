@@ -10,6 +10,7 @@ from .address import Address
 from .config import CrawlerSettings, NodeSettings
 from .decorators import print_runtime_stats, timing
 from .dnsseeds import get_addresses_from_dns_seeds
+from .history import History
 from .node import Node
 
 
@@ -205,6 +206,10 @@ class Crawler:
         Initially, the crawler will request addresses from the DNS seeds to
         bootstrap its node sets. Next, `num_workers` crawler instances are
         launched along with a monitoring thread.
+
+        If the `--reachable-node-history` command-line option is set, nodes
+        discovered during previous runs but not during this run will be tried
+        next.
         """
 
         if delay := self.settings.delay_start:
@@ -217,6 +222,27 @@ class Crawler:
         tasks = [self.crawler() for _ in range(self.settings.num_workers)]
         tasks.append(self.monitor())
         await asyncio.gather(*tasks)
+
+        if self.settings.result_settings.history_settings.enable:
+            history = History(self.settings)
+            historical_nodes = history.get_reachable_nodes()
+            historical_reached = historical_nodes & self.nodes.reachable
+            historical_not_reached = historical_nodes & self.nodes.unreachable
+            historical_unseen = (
+                historical_nodes - historical_reached - historical_not_reached
+            )
+            log.info(
+                "Read %d historical nodes (reached=%d, not_reached=%d, unseen=%d)",
+                len(historical_nodes),
+                len(historical_reached),
+                len(historical_not_reached),
+                len(historical_unseen),
+            )
+            self.nodes.pending |= historical_unseen
+            tasks = [self.crawler() for _ in range(self.settings.num_workers)]
+            tasks.append(self.monitor())
+            await asyncio.gather(*tasks)
+            history.update_and_persist(reachable_nodes_now=self.nodes.reachable)
 
         print_runtime_stats()
         log.info(
