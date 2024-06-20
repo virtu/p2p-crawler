@@ -131,7 +131,7 @@ class HistorySettings(ComponentSettings):
         return cls(
             enable=args.reachable_node_history,
             max_retries=args.reachable_node_history_max_retries,
-            path=Path(f"{args.result_path}/reachabe_nodes_history.json"),
+            path=Path(f"{args.result_path}/reachabe_nodes_history.json.bz2"),
         )
 
 
