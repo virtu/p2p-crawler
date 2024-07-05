@@ -37,7 +37,7 @@
 
       devShells.default = pkgs.mkShell {
         inputsFrom = [ self.packages.${system}.default ];
-        packages = with pkgs; [ poetry python39 ];
+        packages = with pkgs; [ poetry ];
       };
     });
 }
