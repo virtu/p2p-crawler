@@ -227,6 +227,7 @@ in
       description = "p2p-crawler";
       # service should only run when scheduled, not when system is booted so no
       # wantedBy = [ "multi-user.target" ];
+      wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
 
       serviceConfig = {
