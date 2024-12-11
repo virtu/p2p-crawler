@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "p2p-crawler"
-version = "3.7.1"
+version = "3.8.0"
 description = "Crawler for Bitcoin's P2P network"
 authors = ["virtu <virtu@cryptic.to>"]
 license = "AGPLv3"
@@ -13,6 +13,9 @@ pytest = "^7.4.2"
 google-cloud-storage = "^2.12.0"
 python-socks = {extras = ["asyncio"], version = "^2.4.3"}
 mmh3 = "^4.1.0"
+requests = "^2.31.0"
+google-auth = "^2.36.0"
+maillog = "*"
 
 [build-system]
 requires = ["poetry-core"]

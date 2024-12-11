@@ -5,6 +5,14 @@ All notable changes are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 3.8.0 - 2024-12-11
+
+- Compare DNS seeds hardcoded into crawler to those hardcoded into Bitcoin Core and
+  output a warning if the crawler is missing seeds
+- Make use of new [maillog](http://github.com/virtu/maillog) package to send warnings
+  about DNS seeds via email
+- Add `google-auth` Python package as dependency
+
 ## 3.7.1 - 2024-06-19
 
 - Refactor Node class to switch from passing static `NodeSettings` via the constructor
