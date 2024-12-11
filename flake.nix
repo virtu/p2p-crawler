@@ -8,14 +8,25 @@
       url = "github:nix-community/poetry2nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    maillog = {
+      url = "github:virtu/maillog";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix }: {
+  outputs = { self, nixpkgs, flake-utils, poetry2nix, maillog }: {
     nixosModules.p2p-crawler = import ./module.nix self;
   } // flake-utils.lib.eachDefaultSystem (system:
     let
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = import nixpkgs {
+        inherit system;
+      };
       inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication defaultPoetryOverrides;
+      pkgsWithOverlays = import nixpkgs {
+        inherit system;
+        overlays = maillog.overlays.${system};
+      };
+
     in
     {
       packages = {
@@ -26,11 +37,11 @@
           python = pkgs.python39;
 
           # extra nativeBuildInputs for dependencies
-          overrides = defaultPoetryOverrides.extend
-            (self: super: {
-              i2plib = super.i2plib.overridePythonAttrs
-                (old: { nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ super.setuptools ]; });
-            });
+          overrides = defaultPoetryOverrides.extend (final: super: {
+            i2plib = super.i2plib.overridePythonAttrs
+              (old: { nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ super.setuptools ]; });
+            maillog = pkgsWithOverlays.maillog { python = pkgs.python39; };
+          });
         };
         default = self.packages.${system}.p2p-crawler;
       };

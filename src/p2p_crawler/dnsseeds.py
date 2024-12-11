@@ -4,6 +4,7 @@ import logging as log
 import re
 import socket
 
+import maillog
 import requests
 
 from .address import Address
@@ -67,17 +68,17 @@ def compare_seeds_to_bitcoin_master() -> None:
         response = requests.get(url, timeout=10)
         cpp_content = response.text
     except requests.RequestException as e:
-        log.warning("Error fetching DNS seeds from Bitcoin Core: %s", e)
+        maillog.warning(f"Error fetching DNS seeds from Bitcoin Core: {e}")
         return
 
     # Extract the class CMainParams from chainparams to get mainnet seeds
     start_index = cpp_content.find("class CMainParams")
     if start_index == -1:
-        log.warning("Error extracting DNS seeds: class CMainParams not found")
+        maillog.warning("Error extracting DNS seeds: class CMainParams not found")
         return
     brace_start = cpp_content.find("{", start_index)
     if brace_start == -1:
-        log.warning("Error extracting DNS seeds: opening brace not found")
+        maillog.warning("Error extracting DNS seeds: opening brace not found")
         return
     brace_level = 1
     pos = brace_start + 1
@@ -88,7 +89,7 @@ def compare_seeds_to_bitcoin_master() -> None:
             brace_level -= 1
         pos += 1
     if brace_level != 0:
-        log.warning("Error extracting DNS seeds: closing brace not found")
+        maillog.warning("Error extracting DNS seeds: closing brace not found")
         return
     class_content = cpp_content[brace_start + 1 : pos - 1]
 
@@ -104,10 +105,8 @@ def compare_seeds_to_bitcoin_master() -> None:
     extra = set(DNS_SEEDS) - seeds_master
 
     if missing:
-        log.warning(
-            "DNS seeds: crawler is missing seeds: %s (extra=%s)",
-            ",".join(missing) or "none",
-            ",".join(extra) or "none",
+        maillog.warning(
+            f"DNS seeds: crawler is missing seeds: {','.join(missing) or 'none'} (extra={','.join(extra) or 'none'})"
         )
 
     log.info("DNS seeds: all addresses hardcoded in master present in crawler")
