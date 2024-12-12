@@ -13,14 +13,15 @@ from .decorators import timing
 DNS_SEEDS = [
     "seed.bitcoin.sipa.be.",
     "dnsseed.bluematt.me.",
-    "dnsseed.bitcoin.dashjr.org.",
+    "dnsseed.bitcoin.dashjr-list-of-p2p-nodes.us.",
     "seed.bitcoinstats.com.",
     "seed.bitcoin.jonasschnelli.ch.",
-    "seed.btc.petertodd.org.",
+    "seed.btc.petertodd.net.",
     "seed.bitcoin.sprovoost.nl.",
     "dnsseed.emzy.de.",
     "seed.bitcoin.wiz.biz.",
     "seed.mainnet.achownodes.xyz.",
+    "seed.btc.petertodd.net.",
 ]
 
 
