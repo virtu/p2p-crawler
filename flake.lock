@@ -81,11 +81,11 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1733916642,
-        "narHash": "sha256-Fuk/90s+rBJu9nn/4i6kGY8bakA1FY/3+OEArP7Liak=",
+        "lastModified": 1734079456,
+        "narHash": "sha256-7j/Vlrw60ZrxyVDRdsd3XPSpr9wQHOMhVsT3wbWmFC4=",
         "owner": "virtu",
         "repo": "maillog",
-        "rev": "e497baeedf38adf36cb30f5fb7a4ae7023f49628",
+        "rev": "676e6059f0c4a5bc2349729dff7b45ac5a612b9a",
         "type": "github"
       },
       "original": {
