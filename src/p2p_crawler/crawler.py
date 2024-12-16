@@ -6,8 +6,10 @@ import random
 import time
 from dataclasses import asdict, dataclass, field
 
+import maillog
+
 from .address import Address
-from .config import CrawlerSettings, NodeSettings
+from .config import CrawlerSettings
 from .decorators import print_runtime_stats, timing
 from .dnsseeds import get_addresses_from_dns_seeds
 from .history import History
@@ -396,6 +398,11 @@ class Crawler:
             if not (self.nodes.pending or self.nodes.processing or self.nodes.next):
                 log.info("[STATUS] No more nodes and no more active crawlers: exiting")
                 self.stats.runtime = int(time.time() - self.stats.time_started)
+                if self.stats.runtime > (12 * 3600):
+                    log.warning(
+                        "Crawler runtime of %.1fh exceeded 12 hours.",
+                        self.stats.runtime / 3600,
+                    )
                 return
 
             await asyncio.sleep(5)
